@@ -118,7 +118,7 @@ python3 scripts/generate_stl.py --part top_shell  # Generate one part
 |---------|---------------|
 | **Layer Height** | 0.2mm (0.12mm for display frame) |
 | **Infill** | 20–25% (100% for battery cover snap tabs) |
-| **Material** | PETG or ASL recommended (PLA acceptable) |
+| **Material** | PETG or ASA recommended (PLA acceptable) |
 | **Supports** | Required for display recess and rail channels |
 | **Orientation** | Print shells face-down for best surface finish |
 | **Walls** | 3 perimeters minimum |
