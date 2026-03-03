@@ -1,19 +1,17 @@
 # Meshtastic Sliding Phone
 
-A 3D-printable sliding phone enclosure for **Meshtastic** mesh networking devices. Inspired by classic slider phones (Nokia N95, Samsung SGH-D900), this design houses a LILYGO T-Beam V1.2 board with LoRa radio, GPS, battery, and display in a compact, pocket-friendly form factor with a slide-out keyboard.
+A 3D-printable sliding phone enclosure for **Meshtastic** mesh networking devices. Inspired by classic slider phones (Nokia N95, Samsung SGH-D900), this design houses a **Heltec WiFi LoRa 32 V4** board and a **M5Stack CardKB** I²C keyboard in a compact, pocket-friendly form factor with a slide-out keyboard.
 
 ```
     ┌─────────────────────┐
-    │  ╔═══════════════╗  │  ← Speaker grille
-    │  ║               ║  │
-    │  ║    2.8" IPS    ║  │  ← Display window
-    │  ║    Display     ║  │
-    │  ║               ║  │
-    │  ╚═══════════════╝  │
+    │  ╔═════════╗        │  ← Speaker grille
+    │  ║ 0.96"   ║        │
+    │  ║  OLED   ║        │  ← OLED viewport (built into Heltec V4)
+    │  ╚═════════╝        │
     │     [PWR]  [VOL]    │  ← Side buttons
     ├─────────────────────┤  ← Slide mechanism
     │  ┌─┐┌─┐┌─┐┌─┐┌─┐  │
-    │  │Q││W││E││R││T│..  │  ← Keyboard (revealed)
+    │  │Q││W││E││R││T│..  │  ← CardKB (revealed when slid open)
     │  └─┘└─┘└─┘└─┘└─┘  │
     │  ┌─┐┌─┐┌─┐┌─┐┌─┐  │
     │  │A││S││D││F││G│..  │
@@ -25,14 +23,14 @@ A 3D-printable sliding phone enclosure for **Meshtastic** mesh networking device
 ## Features
 
 - **Sliding mechanism** with dovetail rails for smooth, snap-free action
-- **2.8" IPS LCD** display window (320×240, fits standard T-Deck displays)
-- **4×10 keyboard grid** with tactile switch mounting posts
-- **18650 battery** compartment with snap-fit removable cover
+- **0.96" OLED viewport** aligned with the Heltec V4's built-in 128×64 display
+- **CardKB pocket** — snap-in slot for the M5Stack CardKB I²C keyboard module
+- **LiPo battery** compartment (503450 or similar flat pouch cell) with snap-fit cover
 - **SMA antenna mount** with strain relief for LoRa whip antenna
 - **USB-C port** access for charging and firmware flashing
 - **Speaker grille & microphone** holes
 - **Ventilation slots** for thermal management
-- **M2 screw posts** for secure PCB and display mounting
+- **M2 screw posts** for secure PCB mounting
 - **Fully parametric** — all dimensions easily adjustable
 
 ## Project Structure
@@ -43,9 +41,9 @@ meshtastic-sliding-phone/
 │   ├── scad/                    # OpenSCAD parametric source files
 │   │   ├── parameters.scad      # Shared dimensions & tolerances
 │   │   ├── utilities.scad       # Reusable shape modules
-│   │   ├── top_shell.scad       # Upper sliding body + display
-│   │   ├── bottom_shell.scad    # Lower body + keyboard + PCB bay
-│   │   ├── battery_cover.scad   # Snap-fit battery door
+│   │   ├── top_shell.scad       # Upper sliding body + OLED viewport
+│   │   ├── bottom_shell.scad    # Lower body + CardKB pocket + PCB bay
+│   │   ├── battery_cover.scad   # Snap-fit LiPo battery door
 │   │   ├── antenna_mount.scad   # SMA connector mount
 │   │   └── assembly.scad        # Full exploded/assembled view
 │   └── stl/                     # Pre-generated printable meshes
@@ -64,22 +62,22 @@ meshtastic-sliding-phone/
 
 | Component | Specification |
 |-----------|--------------|
-| **Main board** | LILYGO T-Beam V1.2 (ESP32 + LoRa + GPS) |
-| **Display** | 2.8" IPS LCD 320×240 (SPI interface) |
-| **Battery** | 18650 Li-Ion cell (unprotected, flat-top) |
+| **Main board** | Heltec WiFi LoRa 32 V4 (ESP32-S3 + SX1262 LoRa + 0.96" OLED) |
+| **Display** | Built-in 0.96" OLED 128×64 (on Heltec V4 PCB) |
+| **Keyboard** | M5Stack CardKB (I²C, 58.2×27.6mm, 46-key QWERTY) |
+| **Battery** | 3.7 V LiPo 503450 (~1200 mAh, 5×34×50 mm nominal) |
 | **Antenna** | SMA LoRa antenna (868/915 MHz) |
-| **Keyboard** | 4×10 tactile switch matrix (6×6mm switches) |
 | **Fasteners** | M2×8mm screws + M2 nuts |
 
 ## Dimensions
 
 | Part | Width | Length | Height |
 |------|-------|--------|--------|
-| Top Shell | 68mm | 140mm | 9mm |
-| Bottom Shell | 68mm | 192mm | 13mm |
-| Battery Cover | 27mm | 74mm | 4mm |
+| Top Shell | 74mm | 120mm | 7.5mm |
+| Bottom Shell | 74mm | 155mm | 7.5mm |
+| Battery Cover | 43mm | 59mm | 4mm |
 | Antenna Mount | 22mm | 12mm | 10mm |
-| **Assembled (closed)** | **68mm** | **140mm** | **18mm** |
+| **Assembled (closed)** | **74mm** | **120mm** | **15mm** |
 
 ## Getting Started
 
@@ -116,23 +114,23 @@ python3 scripts/generate_stl.py --part top_shell  # Generate one part
 
 | Setting | Recommendation |
 |---------|---------------|
-| **Layer Height** | 0.2mm (0.12mm for display frame) |
+| **Layer Height** | 0.2mm (0.12mm for OLED viewport frame) |
 | **Infill** | 20–25% (100% for battery cover snap tabs) |
 | **Material** | PETG or ASA recommended (PLA acceptable) |
-| **Supports** | Required for display recess and rail channels |
+| **Supports** | Required for rail channels |
 | **Orientation** | Print shells face-down for best surface finish |
 | **Walls** | 3 perimeters minimum |
 
 ## Assembly Instructions
 
 1. **Print all parts** using recommended settings above
-2. **Install keyboard switches** — press 6×6mm tactile switches onto the mounting posts in the bottom shell keyboard well
-3. **Mount the T-Beam PCB** — secure with M2×8mm screws through the 4 mounting posts in the bottom shell
-4. **Connect the display** — route the ribbon cable and seat the LCD module in the top shell display recess, secure with M2 screws
+2. **Seat the CardKB** — press the M5Stack CardKB module into the pocket in the bottom shell keyboard well; the retention ledges click it in place
+3. **Mount the Heltec V4** — secure with M2×8mm screws through the 4 mounting posts in the bottom shell; align the OLED with the viewport window in the top shell
+4. **Wire the CardKB** — run the CardKB Grove/I²C cable through the side access slot and connect to the Heltec V4 (SDA → GPIO 21, SCL → GPIO 22)
 5. **Install the antenna mount** — attach to the top edge of the bottom shell with M2 screws, thread the SMA connector through
-6. **Insert the battery** — place an 18650 cell in the battery compartment and snap the battery cover shut
+6. **Insert the LiPo battery** — place the flat LiPo cell in the battery compartment and snap the battery cover shut
 7. **Assemble the slide** — align the top shell's dovetail rails with the bottom shell's channels and slide together from the keyboard end
-8. **Flash Meshtastic firmware** — connect via USB-C and use [flasher.meshtastic.org](https://flasher.meshtastic.org)
+8. **Flash Meshtastic firmware** — connect via USB-C and use [flasher.meshtastic.org](https://flasher.meshtastic.org); select **Heltec WiFi LoRa 32 V4** as the target device
 
 ## Customization
 
@@ -143,7 +141,8 @@ All dimensions are parametric. Edit `models/scad/parameters.scad` to adjust:
 - `clearance` — sliding fit tolerance (tune for your printer)
 - `keyboard_travel` — how far the keyboard slides out
 - `corner_radius` — roundness of edges
-- Display, PCB, battery dimensions — match your specific hardware
+- `cardkb_length`, `cardkb_width`, `cardkb_thickness` — CardKB module pocket
+- PCB, battery, display viewport dimensions — match your specific hardware
 
 ## Contributing
 
@@ -159,5 +158,6 @@ This project is open source. See individual files for details.
 ## Acknowledgments
 
 - [Meshtastic](https://meshtastic.org/) — open-source mesh networking
-- [LILYGO](https://www.lilygo.cc/) — T-Beam and T-Deck hardware
+- [Heltec Automation](https://heltec.org/) — WiFi LoRa 32 V4 hardware
+- [M5Stack](https://m5stack.com/) — CardKB keyboard module
 - OpenSCAD and numpy-stl communities

@@ -21,28 +21,35 @@ from stl import mesh
 # ---------------------------------------------------------------------------
 # Parameters (mirrors parameters.scad)
 # ---------------------------------------------------------------------------
-PHONE_LENGTH = 140.0
-PHONE_WIDTH = 68.0
-PHONE_THICKNESS = 18.0
+PHONE_LENGTH = 120.0
+PHONE_WIDTH = 74.0
+PHONE_THICKNESS = 15.0
 
 WALL = 1.8
 CORNER_R = 4.0
 CLEARANCE = 0.3
 
-DISPLAY_W = 57.0
-DISPLAY_H = 43.0
-DISPLAY_OFFSET_Y = 18.0
-DISPLAY_DEPTH = 3.5
+# Heltec V4 built-in 0.96" OLED viewport
+DISPLAY_W = 21.0
+DISPLAY_H = 11.0
+DISPLAY_OFFSET_Y = 15.0
+DISPLAY_DEPTH = 2.0
 
-PCB_LENGTH = 100.0
-PCB_WIDTH = 33.0
+# Heltec WiFi LoRa 32 V4 board
+PCB_LENGTH = 55.0
+PCB_WIDTH = 27.0
 
-BATTERY_D = 18.5
-BATTERY_L = 65.5
+# LiPo battery (503450)
+LIPO_THICKNESS = 6.0
+LIPO_WIDTH = 35.0
+LIPO_LENGTH = 51.0
 
-KEYBOARD_TRAVEL = 52.0
-KEYBOARD_ROWS = 4
-KEYBOARD_COLS = 10
+# CardKB keyboard module (M5Stack CardKB) — nominal + tolerance
+CARDKB_LENGTH = 59.0    # 58.2 mm nominal + 0.8 mm tolerance
+CARDKB_WIDTH = 28.0     # 27.6 mm nominal + 0.4 mm tolerance
+CARDKB_THICKNESS = 8.0  # 7.5 mm nominal + 0.5 mm tolerance
+
+KEYBOARD_TRAVEL = 35.0
 
 RAIL_W = 4.0
 RAIL_H = 2.0
@@ -171,20 +178,20 @@ def generate_top_shell():
         rx = side * (w / 2 - WALL - RAIL_W / 2)
         parts.append(_box_triangles(rx, 0, -rail_d, RAIL_W, rail_l, rail_d))
 
-    # Display frame posts (4 cylinders)
-    dy_center = l / 2 - DISPLAY_OFFSET_Y - DISPLAY_H / 2
+    # PCB mounting posts (4 cylinders, align Heltec V4 under OLED viewport)
+    dy_center = l / 2 - DISPLAY_OFFSET_Y - PCB_LENGTH / 2
     for sx in [-1, 1]:
         for sy in [-1, 1]:
-            px = sx * (DISPLAY_W / 2 + 6)
-            py = dy_center + sy * (DISPLAY_H / 2 - 3)
-            parts.append(_cylinder_triangles(px, py, WALL, 2.5, DISPLAY_DEPTH + 1, 16))
+            px = sx * (PCB_WIDTH / 2 - 2)
+            py = dy_center + sy * (PCB_LENGTH / 2 - 3)
+            parts.append(_cylinder_triangles(px, py, WALL, 2.5, 6, 16))
 
     verts, faces = _combine_meshes(parts)
     return _make_stl(verts, faces)
 
 
 def generate_bottom_shell():
-    """Generate the bottom shell mesh with keyboard well and PCB mounts."""
+    """Generate the bottom shell mesh with CardKB pocket and PCB mounts."""
     parts = []
     w = PHONE_WIDTH
     l = BOT_LENGTH
@@ -209,7 +216,7 @@ def generate_bottom_shell():
         gx = side * (w / 2 - WALL / 2)
         parts.append(_box_triangles(gx, 0, d, WALL, l, guide_h))
 
-    # PCB mounting posts (4 cylinders)
+    # PCB mounting posts (4 cylinders, Heltec V4)
     pcb_cy = l / 2 - 14 - PCB_LENGTH / 2
     for sx in [-1, 1]:
         for sy in [-1, 1]:
@@ -222,24 +229,29 @@ def generate_bottom_shell():
         sx = side * (w / 2 - WALL - RAIL_W / 2)
         parts.append(_box_triangles(sx, l / 2 - 1.5, d, RAIL_W + 2, 3, guide_h))
 
-    # Keyboard switch posts (grid of small cylinders)
-    kb_w = w - 2 * WALL - 2 * RAIL_W - 8
-    kb_l = KEYBOARD_TRAVEL - 10
-    for c in range(KEYBOARD_COLS):
-        for r in range(KEYBOARD_ROWS):
-            kx = -kb_w / 2 + 4 + c * (kb_w - 8) / max(KEYBOARD_COLS - 1, 1)
-            ky = -l / 2 + WALL + 8 + r * (kb_l - 4) / max(KEYBOARD_ROWS - 1, 1)
-            parts.append(_cylinder_triangles(kx, ky, WALL, 0.75, 2, 8))
+    # CardKB pocket (rectangular recess for the keyboard module)
+    ckb_cy = -l / 2 + WALL + CARDKB_WIDTH / 2 + 3
+    parts.append(_box_triangles(0, ckb_cy, WALL,
+                                CARDKB_LENGTH + 2 * CLEARANCE,
+                                CARDKB_WIDTH  + 2 * CLEARANCE,
+                                CARDKB_THICKNESS + 1))
+
+    # CardKB retention ledges (two small lips to keep module in pocket)
+    for side in [-1, 1]:
+        lx = side * (CARDKB_LENGTH / 2 + CLEARANCE + 1)
+        parts.append(_box_triangles(lx, ckb_cy,
+                                    WALL + CARDKB_THICKNESS + 1,
+                                    2, CARDKB_WIDTH, 1.5))
 
     verts, faces = _combine_meshes(parts)
     return _make_stl(verts, faces)
 
 
 def generate_battery_cover():
-    """Generate the snap-fit battery door."""
+    """Generate the snap-fit LiPo battery door."""
     parts = []
-    cw = BATTERY_D + 8
-    cl = BATTERY_L + 8
+    cw = LIPO_WIDTH + 8
+    cl = LIPO_LENGTH + 8
     ch = 1.5
 
     # Main plate
