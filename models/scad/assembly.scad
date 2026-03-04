@@ -43,7 +43,7 @@ color(color_top)
 // --- Battery cover (snaps onto back of bottom shell) ---
 color(color_battery)
     translate([0,
-               -total_bot_length/2 + wall + battery_length/2 + 5,
+               -total_bot_length/2 + wall + lipo_length/2 + 5,
                -explode_gap])
         rotate([180, 0, 0])
             battery_cover();

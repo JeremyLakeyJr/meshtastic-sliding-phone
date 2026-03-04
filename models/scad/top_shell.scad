@@ -1,8 +1,9 @@
 // ============================================================================
 // Meshtastic Sliding Phone - Top Shell
 // ============================================================================
-// The upper sliding half of the phone containing the display window,
-// speaker grille, and front-facing elements.
+// The upper sliding half of the phone. Contains a viewport window that
+// aligns with the Heltec V4's built-in 0.96" OLED display mounted on the
+// PCB below, speaker grille, and front-facing elements.
 //
 // Print settings: 0.2mm layer height, 20% infill, supports for display recess
 // ============================================================================
@@ -32,13 +33,13 @@ module top_shell() {
                         top_shell_z,
                         max(corner_radius - wall, 0.5));
 
-        // --- Display window cutout (through top face) ---
+        // --- OLED viewport cutout (through top face, aligns with Heltec V4 OLED) ---
         translate([0, top_shell_length/2 - display_offset_y - display_h/2, -0.1])
-            rounded_box(display_w, display_h, wall + 0.2, 2);
+            rounded_box(display_w, display_h, wall + 0.2, 1);
 
-        // --- Display recess (step for glass/module to sit in) ---
-        translate([0, top_shell_length/2 - display_offset_y - display_h/2, wall - 0.5])
-            rounded_box(display_w + 4, display_h + 4, display_depth + 0.5, 2);
+        // --- Viewport recess (slight countersink to protect display glass) ---
+        translate([0, top_shell_length/2 - display_offset_y - display_h/2, wall - display_depth])
+            rounded_box(display_w + 2, display_h + 2, display_depth + 0.2, 1);
 
         // --- Speaker grille (top edge, centered) ---
         translate([0, top_shell_length/2 - 8, -0.1])
@@ -70,27 +71,27 @@ module top_shell() {
             rotate([0, 90, 0])
                 rounded_box(14, 4, wall + 0.2, 1);
 
-        // --- Screw post holes (for securing display bracket) ---
+        // --- Screw post holes (PCB mounting — aligns Heltec V4 under viewport) ---
         for (pos = [
-            [ display_w/2 + 6, top_shell_length/2 - display_offset_y - 3],
-            [-display_w/2 - 6, top_shell_length/2 - display_offset_y - 3],
-            [ display_w/2 + 6, top_shell_length/2 - display_offset_y - display_h + 3],
-            [-display_w/2 - 6, top_shell_length/2 - display_offset_y - display_h + 3]
+            [ pcb_width/2 - 2, top_shell_length/2 - display_offset_y - 3],
+            [-pcb_width/2 + 2, top_shell_length/2 - display_offset_y - 3],
+            [ pcb_width/2 - 2, top_shell_length/2 - display_offset_y - pcb_length + 3],
+            [-pcb_width/2 + 2, top_shell_length/2 - display_offset_y - pcb_length + 3]
         ]) {
             translate([pos[0], pos[1], wall])
                 cylinder(h = top_shell_z, d = screw_hole_d);
         }
     }
 
-    // --- Display mounting posts ---
+    // --- PCB mounting posts (secure Heltec V4 beneath viewport) ---
     for (pos = [
-        [ display_w/2 + 6, top_shell_length/2 - display_offset_y - 3],
-        [-display_w/2 - 6, top_shell_length/2 - display_offset_y - 3],
-        [ display_w/2 + 6, top_shell_length/2 - display_offset_y - display_h + 3],
-        [-display_w/2 - 6, top_shell_length/2 - display_offset_y - display_h + 3]
+        [ pcb_width/2 - 2, top_shell_length/2 - display_offset_y - 3],
+        [-pcb_width/2 + 2, top_shell_length/2 - display_offset_y - 3],
+        [ pcb_width/2 - 2, top_shell_length/2 - display_offset_y - pcb_length + 3],
+        [-pcb_width/2 + 2, top_shell_length/2 - display_offset_y - pcb_length + 3]
     ]) {
         translate([pos[0], pos[1], wall])
-            screw_post(display_depth + 1, screw_post_d, screw_hole_d);
+            screw_post(screw_post_h, screw_post_d, screw_hole_d);
     }
 }
 

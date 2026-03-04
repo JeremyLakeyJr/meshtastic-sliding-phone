@@ -1,7 +1,7 @@
 // ============================================================================
 // Meshtastic Sliding Phone - Battery Cover
 // ============================================================================
-// Snap-fit battery door that covers the 18650 cell compartment on the
+// Snap-fit battery door that covers the LiPo cell compartment on the
 // back of the bottom shell. Features a latch mechanism for tool-free
 // battery swaps in the field.
 //
@@ -12,8 +12,8 @@ include <parameters.scad>
 use <utilities.scad>
 
 module battery_cover() {
-    cover_w = battery_diameter + 8;
-    cover_l = battery_length + 8;
+    cover_w = lipo_width + 8;
+    cover_l = lipo_length + 8;
     cover_h = 1.5;  // Thin cover plate
 
     // Snap tab dimensions

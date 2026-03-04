@@ -1,8 +1,8 @@
 // ============================================================================
 // Meshtastic Sliding Phone - Bottom Shell
 // ============================================================================
-// The lower half of the phone housing the T-Beam PCB, battery compartment,
-// keyboard well, and the female slide rail channels.
+// The lower half of the phone housing the Heltec V4 PCB, LiPo battery
+// compartment, CardKB keyboard pocket, and the female slide rail channels.
 //
 // Print settings: 0.2mm layer height, 25% infill, supports for rail channels
 // ============================================================================
@@ -42,35 +42,41 @@ module bottom_shell() {
                 dovetail_channel(rail_width, rail_height, total_length - 10, clearance);
         }
 
-        // --- T-Beam PCB pocket (recessed mounting area) ---
+        // --- Heltec V4 PCB pocket (recessed mounting area) ---
         translate([0,
                    total_length/2 - 10 - pcb_length/2,
                    wall])
             cube([pcb_width + 1, pcb_length + 1, pcb_thickness + 0.5], center = true);
 
-        // --- Battery compartment (18650 cell, bottom section) ---
+        // --- LiPo battery compartment (flat pouch cell) ---
         translate([0,
-                   -total_length/2 + wall + battery_length/2 + 5,
-                   wall + battery_diameter/2 + pcb_thickness])
-            rotate([0, 0, 0])
-                cube([battery_diameter + 1,
-                      battery_length + 1,
-                      battery_diameter + 1], center = true);
+                   -total_length/2 + wall + lipo_length/2 + 5,
+                   wall])
+            cube([lipo_width + 1,
+                  lipo_length + 1,
+                  lipo_thickness + 1], center = true);
 
         // --- Battery door opening (bottom face) ---
         translate([0,
-                   -total_length/2 + wall + battery_length/2 + 5,
+                   -total_length/2 + wall + lipo_length/2 + 5,
                    -0.1])
-            rounded_box(battery_diameter + 6, battery_length + 6, wall + 0.2, 2);
+            rounded_box(lipo_width + 6, lipo_length + 6, wall + 0.2, 2);
 
-        // --- Keyboard well (the area exposed when top slides up) ---
+        // --- CardKB module pocket (revealed when top shell slides open) ---
         translate([0,
-                   -total_length/2 + keyboard_travel/2 + wall + 3,
-                   bot_shell_z - 2])
-            rounded_box(bot_shell_width - 2*wall - 2*rail_width - 4,
-                        keyboard_travel - 6,
-                        3,
+                   -total_length/2 + wall + cardkb_width/2 + 3,
+                   wall])
+            rounded_box(cardkb_length + 2*clearance,
+                        cardkb_width  + 2*clearance,
+                        cardkb_thickness + 1,
                         2);
+
+        // --- I2C cable access slot (bottom edge of keyboard pocket) ---
+        translate([0,
+                   -total_length/2 - 0.1,
+                   wall + cardkb_thickness/2])
+            rotate([90, 0, 0])
+                rounded_box(8, cardkb_thickness, wall + 0.4, 1);
 
         // --- USB-C port cutout (bottom edge) ---
         translate([0,
@@ -134,18 +140,12 @@ module bottom_shell() {
             screw_post(screw_post_h, screw_post_d, screw_hole_d);
     }
 
-    // --- Keyboard key posts (tactile switch mounting grid) ---
-    kb_area_x = bot_shell_width - 2*wall - 2*rail_width - 8;
-    kb_area_y = keyboard_travel - 10;
-    key_pitch = (key_size + key_spacing);
-
-    for (c = [0 : keyboard_cols - 1]) {
-        for (r = [0 : keyboard_rows - 1]) {
-            kx = -kb_area_x/2 + 4 + c * (kb_area_x - 8) / (keyboard_cols - 1);
-            ky = -total_length/2 + wall + 8 + r * (kb_area_y - 4) / (keyboard_rows - 1);
-            translate([kx, ky, wall])
-                cylinder(h = 2, d = 1.5);
-        }
+    // --- CardKB retention ledges (keeps module from sliding forward) ---
+    for (side = [-1, 1]) {
+        translate([side * (cardkb_length/2 + clearance + 1),
+                   -total_length/2 + wall + cardkb_width/2 + 3,
+                   wall + cardkb_thickness + 1])
+            cube([2, cardkb_width, 1.5], center = true);
     }
 
     // --- Slide end-stops (prevents top from sliding off) ---
