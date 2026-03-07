@@ -26,7 +26,7 @@ A 3D-printable sliding phone enclosure for **Meshtastic** mesh networking device
 - **Guide pin mechanism** with internal arc channels and snap detent positions
 - **0.96" OLED viewport** aligned with the Heltec V4's built-in 128×64 display
 - **CardKB pocket** — snap-in slot for the M5Stack CardKB I²C keyboard module
-- **LiPo battery** compartment (503450 or similar flat pouch cell) with snap-fit cover
+- **LiPo battery** compartment (MakerFocus 3000 mAh or similar flat pouch cell, ~65×36×10 mm) with snap-fit cover
 - **SMA antenna mount** with strain relief for LoRa whip antenna
 - **USB-C port** access for charging and firmware flashing
 - **Speaker grille & microphone** holes
@@ -66,7 +66,7 @@ meshtastic-sliding-phone/
 | **Main board** | Heltec WiFi LoRa 32 V4 (ESP32-S3 + SX1262 LoRa + 0.96" OLED) |
 | **Display** | Built-in 0.96" OLED 128×64 (on Heltec V4 PCB) |
 | **Keyboard** | M5Stack CardKB (I²C, 58.2×27.6mm, 46-key QWERTY) |
-| **Battery** | 3.7 V LiPo 503450 (~1200 mAh, 5×34×50 mm nominal) |
+| **Battery** | MakerFocus 3.7 V LiPo 3000 mAh (~65×36×10 mm nominal) |
 | **Antenna** | SMA LoRa antenna (868/915 MHz) |
 | **Fasteners** | M2×8mm screws + M2 nuts |
 
@@ -74,11 +74,11 @@ meshtastic-sliding-phone/
 
 | Part | Width | Length | Height |
 |------|-------|--------|--------|
-| Top Shell | 74mm | 120mm | 7.5mm |
-| Bottom Shell | 74mm | 155mm | 7.5mm |
-| Battery Cover | 43mm | 59mm | 4mm |
+| Top Shell | 74mm | 165mm | 9mm |
+| Bottom Shell | 74mm | 165mm | 15mm |
+| Battery Cover | 46mm | 75mm | 4mm |
 | Antenna Mount | 22mm | 12mm | 10mm |
-| **Assembled (closed)** | **74mm** | **120mm** | **15mm** |
+| **Assembled (closed)** | **74mm** | **165mm** | **24mm** |
 
 ## Getting Started
 
