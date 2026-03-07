@@ -5,14 +5,17 @@ Meshtastic Sliding Phone - STL Generator
 Generates printable STL mesh files for all phone components using numpy-stl.
 Run this script to produce STL files without needing OpenSCAD installed.
 
-The sliding mechanism uses a Sony Xperia-style curved arc slider with guide
-pins on the top shell that ride in arc-shaped channels in the bottom shell.
+Mechanism: horizontal magnetic-detent slider.
+  • Two parallel rectangular rail runners on the keyboard-tray top face
+    slide inside matching channels in the bottom-shell underside.
+  • Neodymium disc magnets recessed in both faces snap the tray into the
+    closed and open positions and provide Z-axis retention during sliding.
 
 Usage:
-    python3 generate_stl.py           # Generate all STL files
-    python3 generate_stl.py --part top_shell   # Generate a single part
+    python3 generate_stl.py                         # Generate all parts
+    python3 generate_stl.py --part keyboard_tray    # Single part
 
-Output directory: ../stl/
+Output directory: ../models/stl/
 """
 
 import argparse
@@ -25,58 +28,77 @@ from stl import mesh
 # ---------------------------------------------------------------------------
 # Parameters (mirrors parameters.scad)
 # ---------------------------------------------------------------------------
-PHONE_LENGTH = 165.0
-PHONE_WIDTH = 74.0
-PHONE_THICKNESS = 24.0
+PHONE_LENGTH     = 120.0
+PHONE_WIDTH      =  74.0
+PHONE_THICKNESS  =  27.0   # top_shell_z + bot_shell_z + tray_z
 
-WALL = 1.8
-CORNER_R = 4.0
-CLEARANCE = 0.3
+WALL             =   2.0
+CLEARANCE        =   0.3
+CORNER_R         =   4.0
 
-# Heltec V4 built-in 0.96" OLED viewport
-DISPLAY_W = 21.0
-DISPLAY_H = 11.0
-DISPLAY_OFFSET_Y = 15.0
-DISPLAY_DEPTH = 2.0
+# Display (Heltec V4 OLED 0.96″)
+DISPLAY_W        =  21.0
+DISPLAY_H        =  11.0
+DISPLAY_OFFSET_Y =  12.0
+DISPLAY_DEPTH    =   2.0
 
-# Heltec WiFi LoRa 32 V4 board
-PCB_LENGTH = 55.0
-PCB_WIDTH = 27.0
+# Heltec WiFi LoRa 32 V4 PCB
+PCB_LENGTH       =  55.0
+PCB_WIDTH        =  27.0
 
-# LiPo battery (MakerFocus 3000 mAh, 3.7 V, ~65×36×10 mm nominal)
-LIPO_THICKNESS = 12.0   # 10 mm + 2 mm tolerance
-LIPO_WIDTH = 38.0       # 36 mm + 2 mm tolerance
-LIPO_LENGTH = 67.0      # 65 mm + 2 mm tolerance
+# LiPo battery (slim pouch, ~50×40×5 mm nominal)
+LIPO_THICKNESS   =   6.0
+LIPO_WIDTH       =  42.0
+LIPO_LENGTH      =  52.0
 
-# CardKB keyboard module (M5Stack CardKB) — nominal + tolerance
-CARDKB_LENGTH = 59.0    # 58.2 mm nominal + 0.8 mm tolerance
-CARDKB_WIDTH = 28.0     # 27.6 mm nominal + 0.4 mm tolerance
-CARDKB_THICKNESS = 8.0  # 7.5 mm nominal + 0.5 mm tolerance
+# CardKB keyboard module
+CARDKB_LENGTH    =  59.0
+CARDKB_WIDTH     =  28.0
+CARDKB_THICKNESS =   7.0
 
-KEYBOARD_TRAVEL = 35.0
+KEYBOARD_TRAVEL  =  42.0
 
-# Arc slide mechanism (Sony Xperia-style)
-ARC_RADIUS = 200.0       # Radius of the curved arc path
-TILT_ANGLE = 25.0        # Maximum tilt angle when fully open (degrees)
-GUIDE_PIN_D = 3.0        # Diameter of guide pins on top shell
-GUIDE_PIN_H = 3.0        # Height of guide pins
-GUIDE_SLOT_W = 3.6       # Width of arc channel (guide_pin_d + clearance)
-GUIDE_SLOT_DEPTH = 3.5   # Depth of arc channel in side wall
+# --- Shell heights ---
+TOP_Z  =  10.0   # top shell
+BOT_Z  =   9.0   # bottom shell
+TRAY_Z =   8.0   # keyboard tray
 
-# Guide pin / arc channel positioning
-PIN_EDGE_INSET = 15.0    # How far guide pins are inset from shell edges (Y-axis)
-PIN_WALL_INSET = 1.0     # Additional inset from inner wall face (X-axis)
-ARC_SLOT_MARGIN = 20.0   # Extra length beyond keyboard_travel for arc slot
+# --- Rail system ---
+RAIL_W          =  4.0
+RAIL_H          =  2.5
+RAIL_X          = 32.0
+RAIL_CHANNEL_W  = RAIL_W + 2 * CLEARANCE          # 4.6 mm
+RAIL_CHANNEL_H  = RAIL_H + 1.0                    # 3.5 mm
 
-SMA_D = 6.5
-USBC_W = 9.5
-USBC_H = 3.5
+# --- Neodymium magnet detents ---
+MAGNET_D        =  5.0
+MAGNET_H        =  2.0
+MAGNET_POCKET_D =  5.2
+MAGNET_POCKET_H =  2.5
+MAGNET_X        = 16.0
+DETENT_Y_OFFSET = 35.0
 
-TOP_Z = 9.0          # Top shell height (display face + buttons)
-BOT_Z = 15.0         # Bottom shell height (fits 12 mm MakerFocus battery + mechanics)
-BOT_LENGTH = PHONE_LENGTH   # Same footprint as top shell
+# --- End-stop tab dimensions (keyboard tray open-position mechanical stop) ---
+# The tab's leading (−Y) face hits the phone body's −Y wall, stopping the
+# tray TAB_STOP_MARGIN mm before the theoretical maximum travel so the tray
+# doesn't slam against the hard stop.
+TAB_W_EXTRA     =  2.0   # mm wider than the channel (1 mm per side) – cannot pass through opening
+TAB_DEPTH       =  3.0   # mm Y extent – provides adequate bearing surface
+TAB_HEIGHT_EXT  =  1.5   # mm extra height above rail_h – ensures positive engagement
+TAB_STOP_MARGIN =  2.0   # mm safety margin before maximum travel
 
-OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "models", "stl")
+# --- Ports ---
+SMA_D    =  6.5
+USBC_W   =  9.5
+USBC_H   =  3.5
+
+# --- Screw posts ---
+SCREW_HOLE_D =  2.2
+SCREW_POST_D =  5.0
+SCREW_POST_H =  5.0
+
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "..", "models", "stl")
 
 
 # ---------------------------------------------------------------------------
@@ -84,73 +106,57 @@ OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "mod
 # ---------------------------------------------------------------------------
 
 def _box_triangles(cx, cy, cz, w, h, d):
-    """Return 12 triangles (vertices array) for an axis-aligned box centered at (cx,cy,cz)."""
+    """12 triangles for an axis-aligned box with bottom-left-front at (cx-w/2, cy-h/2, cz)."""
     x0, x1 = cx - w / 2, cx + w / 2
     y0, y1 = cy - h / 2, cy + h / 2
     z0, z1 = cz, cz + d
-
     verts = np.array([
         [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0],  # bottom
         [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1],  # top
     ])
-    # 12 triangles = 6 faces * 2 tris
     faces = np.array([
-        [0,2,1], [0,3,2],  # bottom
-        [4,5,6], [4,6,7],  # top
-        [0,1,5], [0,5,4],  # front
-        [1,2,6], [1,6,5],  # right
-        [2,3,7], [2,7,6],  # back
-        [3,0,4], [3,4,7],  # left
+        [0, 2, 1], [0, 3, 2],   # bottom
+        [4, 5, 6], [4, 6, 7],   # top
+        [0, 1, 5], [0, 5, 4],   # front
+        [1, 2, 6], [1, 6, 5],   # right
+        [2, 3, 7], [2, 7, 6],   # back
+        [3, 0, 4], [3, 4, 7],   # left
     ])
     return verts, faces
 
 
 def _cylinder_triangles(cx, cy, z0, r, h, n=24):
-    """Return triangles for a cylinder centered at (cx,cy) from z0 to z0+h."""
+    """Triangles for a cylinder centred at (cx, cy) from z0 to z0+h."""
     angles = np.linspace(0, 2 * np.pi, n, endpoint=False)
-    cos_a = np.cos(angles)
-    sin_a = np.sin(angles)
-
-    # Bottom center = index 0, Top center = index 1
-    # Bottom ring = 2..n+1, Top ring = n+2..2n+1
     verts = [[cx, cy, z0], [cx, cy, z0 + h]]
-    for i in range(n):
-        verts.append([cx + r * cos_a[i], cy + r * sin_a[i], z0])
-    for i in range(n):
-        verts.append([cx + r * cos_a[i], cy + r * sin_a[i], z0 + h])
+    for a in angles:
+        verts.append([cx + r * math.cos(a), cy + r * math.sin(a), z0])
+    for a in angles:
+        verts.append([cx + r * math.cos(a), cy + r * math.sin(a), z0 + h])
     verts = np.array(verts)
-
     faces = []
     for i in range(n):
         j = (i + 1) % n
         bi, bj = 2 + i, 2 + j
         ti, tj = 2 + n + i, 2 + n + j
-        # Bottom fan
         faces.append([0, bj, bi])
-        # Top fan
         faces.append([1, ti, tj])
-        # Side quads (2 tris)
         faces.append([bi, bj, tj])
         faces.append([bi, tj, ti])
     return verts, np.array(faces)
 
 
 def _combine_meshes(parts):
-    """Combine multiple (verts, faces) tuples into a single mesh."""
-    all_verts = []
-    all_faces = []
-    offset = 0
+    """Combine multiple (verts, faces) tuples into one mesh."""
+    all_v, all_f, offset = [], [], 0
     for v, f in parts:
-        all_verts.append(v)
-        all_faces.append(f + offset)
+        all_v.append(v)
+        all_f.append(f + offset)
         offset += len(v)
-    all_verts = np.vstack(all_verts)
-    all_faces = np.vstack(all_faces)
-    return all_verts, all_faces
+    return np.vstack(all_v), np.vstack(all_f)
 
 
 def _make_stl(verts, faces):
-    """Create an stl.mesh.Mesh from vertices and face indices."""
     m = mesh.Mesh(np.zeros(len(faces), dtype=mesh.Mesh.dtype))
     for i, f in enumerate(faces):
         for j in range(3):
@@ -163,126 +169,133 @@ def _make_stl(verts, faces):
 # ---------------------------------------------------------------------------
 
 def generate_top_shell():
-    """Generate the top sliding shell mesh with Sony Xperia-style guide pins."""
+    """Top half of the phone body: display face, Heltec V4 PCB, buttons."""
     parts = []
     w, l, d = PHONE_WIDTH, PHONE_LENGTH, TOP_Z
 
     # Outer box
     parts.append(_box_triangles(0, 0, 0, w, l, d))
-
-    # Inner cavity (slightly smaller, acts as visual representation)
-    # For a proper boolean subtract we'd need CSG; here we add the shell
-    # walls as separate boxes to create a hollow appearance when printed.
-    iw = w - 2 * WALL
-    il = l - 2 * WALL
-
     # Floor
     parts.append(_box_triangles(0, 0, 0, w, l, WALL))
-
     # Side walls
-    parts.append(_box_triangles(-(w/2 - WALL/2), 0, WALL, WALL, l, d - WALL))
-    parts.append(_box_triangles( (w/2 - WALL/2), 0, WALL, WALL, l, d - WALL))
-    parts.append(_box_triangles(0, -(l/2 - WALL/2), WALL, iw, WALL, d - WALL))
-    parts.append(_box_triangles(0,  (l/2 - WALL/2), WALL, iw, WALL, d - WALL))
+    iw = w - 2 * WALL
+    parts.append(_box_triangles(-(w / 2 - WALL / 2), 0, WALL, WALL, l, d - WALL))
+    parts.append(_box_triangles( (w / 2 - WALL / 2), 0, WALL, WALL, l, d - WALL))
+    parts.append(_box_triangles(0, -(l / 2 - WALL / 2), WALL, iw, WALL, d - WALL))
+    parts.append(_box_triangles(0,  (l / 2 - WALL / 2), WALL, iw, WALL, d - WALL))
 
-    # Arc guide pins (Sony Xperia-style — cylindrical pins on underside)
-    # Two pins per side, near front and rear edges
-    pin_r = GUIDE_PIN_D / 2
-    pin_h = GUIDE_PIN_H
-    for side in [-1, 1]:
-        px = side * (w / 2 - WALL - GUIDE_PIN_D / 2 - PIN_WALL_INSET)
-        for pin_y_off in [-1, 1]:
-            py = pin_y_off * (l / 2 - PIN_EDGE_INSET)
-            parts.append(_cylinder_triangles(px, py, -pin_h, pin_r, pin_h, 16))
-
-    # PCB mounting posts (4 cylinders, align Heltec V4 under OLED viewport)
-    dy_center = l / 2 - DISPLAY_OFFSET_Y - PCB_LENGTH / 2
+    # PCB mounting posts (4 cylinders, Heltec V4 under OLED viewport)
+    dy = l / 2 - DISPLAY_OFFSET_Y - PCB_LENGTH / 2
     for sx in [-1, 1]:
         for sy in [-1, 1]:
             px = sx * (PCB_WIDTH / 2 - 2)
-            py = dy_center + sy * (PCB_LENGTH / 2 - 3)
-            parts.append(_cylinder_triangles(px, py, WALL, 2.5, 6, 16))
+            py = dy + sy * (PCB_LENGTH / 2 - 3)
+            parts.append(_cylinder_triangles(px, py, WALL, SCREW_POST_D / 2, SCREW_POST_H, 16))
 
     verts, faces = _combine_meshes(parts)
     return _make_stl(verts, faces)
 
 
 def generate_bottom_shell():
-    """Generate the bottom shell mesh with arc guide channels and CardKB pocket."""
+    """Bottom half of the phone body: battery, ports, rail channels, magnet pockets."""
     parts = []
-    w = PHONE_WIDTH
-    l = BOT_LENGTH
-    d = BOT_Z
+    w, l, d = PHONE_WIDTH, PHONE_LENGTH, BOT_Z
 
     # Outer box
     parts.append(_box_triangles(0, 0, 0, w, l, d))
-
-    # Floor
+    # Floor (solid bottom wall — rail channels are cut in it, simplified here)
     parts.append(_box_triangles(0, 0, 0, w, l, WALL))
-
     # Side walls
     iw = w - 2 * WALL
-    parts.append(_box_triangles(-(w/2 - WALL/2), 0, WALL, WALL, l, d - WALL))
-    parts.append(_box_triangles( (w/2 - WALL/2), 0, WALL, WALL, l, d - WALL))
-    parts.append(_box_triangles(0, -(l/2 - WALL/2), WALL, iw, WALL, d - WALL))
-    parts.append(_box_triangles(0,  (l/2 - WALL/2), WALL, iw, WALL, d - WALL))
+    parts.append(_box_triangles(-(w / 2 - WALL / 2), 0, WALL, WALL, l, d - WALL))
+    parts.append(_box_triangles( (w / 2 - WALL / 2), 0, WALL, WALL, l, d - WALL))
+    parts.append(_box_triangles(0, -(l / 2 - WALL / 2), WALL, iw, WALL, d - WALL))
+    parts.append(_box_triangles(0,  (l / 2 - WALL / 2), WALL, iw, WALL, d - WALL))
 
-    # Raised inner side walls (house the arc guide channels)
-    guide_h = GUIDE_PIN_H + WALL
+    # Rail channel representations (rectangular slots on underside, simplified)
     for side in [-1, 1]:
-        gx = side * (w / 2 - WALL / 2)
-        parts.append(_box_triangles(gx, 0, d, WALL, l, guide_h))
+        cx = side * RAIL_X
+        parts.append(_box_triangles(cx, 0, 0, RAIL_CHANNEL_W, l, RAIL_CHANNEL_H))
 
-    # Arc guide channel representations (simplified as rectangular slots)
-    # In the full OpenSCAD model these are curved arcs; the STL generator
-    # approximates them as straight slots since CSG booleans are not available.
-    arc_slot_l = KEYBOARD_TRAVEL + ARC_SLOT_MARGIN
+    # Magnet pocket representations (cylinders on underside, simplified)
     for side in [-1, 1]:
-        sx = side * (w / 2 - WALL - GUIDE_PIN_D / 2 - PIN_WALL_INSET)
-        for pin_y in [l / 2 - PIN_EDGE_INSET,
-                      -l / 2 + PIN_EDGE_INSET + KEYBOARD_TRAVEL]:
-            parts.append(_box_triangles(sx, pin_y - arc_slot_l / 2 + ARC_SLOT_MARGIN / 2,
-                                        d, GUIDE_SLOT_W, arc_slot_l,
-                                        GUIDE_SLOT_DEPTH))
+        mx = side * MAGNET_X
+        # Closed-position pocket
+        parts.append(_cylinder_triangles(mx,  DETENT_Y_OFFSET,             0,
+                                         MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 12))
+        # Open-position pocket
+        parts.append(_cylinder_triangles(mx,  DETENT_Y_OFFSET - KEYBOARD_TRAVEL, 0,
+                                         MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 12))
 
-    # PCB mounting posts (4 cylinders, Heltec V4)
-    pcb_cy = l / 2 - 14 - PCB_LENGTH / 2
+    # Corner screw posts (join to top shell)
     for sx in [-1, 1]:
         for sy in [-1, 1]:
-            px = sx * (PCB_WIDTH / 2 - 2)
-            py = pcb_cy + sy * (PCB_LENGTH / 2 - 2)
-            parts.append(_cylinder_triangles(px, py, WALL, 2.5, 6, 16))
+            px = sx * (w / 2 - 8)
+            py = sy * (l / 2 - 8)
+            parts.append(_cylinder_triangles(px, py, d, SCREW_POST_D / 2, SCREW_POST_H, 16))
 
-    # Arc channel end-stops (prevents top shell from sliding off)
+    verts, faces = _combine_meshes(parts)
+    return _make_stl(verts, faces)
+
+
+def generate_keyboard_tray():
+    """Sliding keyboard tray: CardKB pocket, rail runners, magnet pockets."""
+    parts = []
+    w, l, d = PHONE_WIDTH, PHONE_LENGTH, TRAY_Z
+
+    # Outer box
+    parts.append(_box_triangles(0, 0, 0, w, l, d))
+    # Floor
+    parts.append(_box_triangles(0, 0, 0, w, l, WALL))
+    # Side walls
+    iw = w - 2 * WALL
+    parts.append(_box_triangles(-(w / 2 - WALL / 2), 0, WALL, WALL, l, d - WALL))
+    parts.append(_box_triangles( (w / 2 - WALL / 2), 0, WALL, WALL, l, d - WALL))
+    parts.append(_box_triangles(0, -(l / 2 - WALL / 2), WALL, iw, WALL, d - WALL))
+    parts.append(_box_triangles(0,  (l / 2 - WALL / 2), WALL, iw, WALL, d - WALL))
+
+    # Rail runners (two rectangular bars on top face)
     for side in [-1, 1]:
-        sx = side * (w / 2 - WALL - GUIDE_PIN_D / 2 - PIN_WALL_INSET)
-        # Front end-stop
-        parts.append(_box_triangles(sx, l / 2 - PIN_EDGE_INSET + 3, d,
-                                    GUIDE_SLOT_W + 2, 2, guide_h))
-        # Rear end-stop
-        parts.append(_box_triangles(sx, -l / 2 + PIN_EDGE_INSET - 3 + KEYBOARD_TRAVEL, d,
-                                    GUIDE_SLOT_W + 2, 2, guide_h))
+        cx = side * RAIL_X
+        parts.append(_box_triangles(cx, 0, d, RAIL_W, l, RAIL_H))
 
-    # CardKB pocket (rectangular recess for the keyboard module)
-    ckb_cy = -l / 2 + WALL + CARDKB_WIDTH / 2 + 3
-    parts.append(_box_triangles(0, ckb_cy, WALL,
-                                CARDKB_LENGTH + 2 * CLEARANCE,
-                                CARDKB_WIDTH  + 2 * CLEARANCE,
-                                CARDKB_THICKNESS + 1))
-
-    # CardKB retention ledges (two small lips to keep module in pocket)
+    # End-stop tabs (open-position stops)
+    # The tab's leading (−Y) face contacts the phone body −Y wall at
+    # travel = KEYBOARD_TRAVEL − TAB_STOP_MARGIN (40 mm), providing a
+    # 2 mm safety margin so the tray decelerates before the hard stop.
+    # _box_triangles is centred on (cx, cy), so tab centre is offset by
+    # TAB_DEPTH / 2 from the leading face position.
+    tab_lead_y = -l / 2 + KEYBOARD_TRAVEL - TAB_STOP_MARGIN
+    tab_cy     = tab_lead_y + TAB_DEPTH / 2
     for side in [-1, 1]:
-        lx = side * (CARDKB_LENGTH / 2 + CLEARANCE + 1)
-        parts.append(_box_triangles(lx, ckb_cy,
-                                    WALL + CARDKB_THICKNESS + 1,
-                                    2, CARDKB_WIDTH, 1.5))
+        cx = side * RAIL_X
+        parts.append(_box_triangles(cx, tab_cy, d,
+                                    RAIL_CHANNEL_W + TAB_W_EXTRA,
+                                    TAB_DEPTH,
+                                    RAIL_H + TAB_HEIGHT_EXT))
+
+    # CardKB pocket representation (raised walls around pocket area)
+    ckb_cy = -l / 2 + WALL + CARDKB_WIDTH / 2
+    ckb_w  = CARDKB_LENGTH + 2 * CLEARANCE
+    ckb_l  = CARDKB_WIDTH  + 2 * CLEARANCE
+    parts.append(_box_triangles(-(ckb_w / 2 + WALL / 2), ckb_cy, WALL,
+                                WALL, ckb_l, CARDKB_THICKNESS))
+    parts.append(_box_triangles( (ckb_w / 2 + WALL / 2), ckb_cy, WALL,
+                                WALL, ckb_l, CARDKB_THICKNESS))
+
+    # Magnet pockets on top face (cylinders, simplified representation)
+    for side in [-1, 1]:
+        mx = side * MAGNET_X
+        parts.append(_cylinder_triangles(mx, DETENT_Y_OFFSET,
+                                         d - MAGNET_POCKET_H,
+                                         MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 12))
 
     verts, faces = _combine_meshes(parts)
     return _make_stl(verts, faces)
 
 
 def generate_battery_cover():
-    """Generate the snap-fit LiPo battery door."""
+    """Snap-fit LiPo battery door."""
     parts = []
     cw = LIPO_WIDTH + 8
     cl = LIPO_LENGTH + 8
@@ -290,44 +303,31 @@ def generate_battery_cover():
 
     # Main plate
     parts.append(_box_triangles(0, 0, 0, cw, cl, ch))
-
     # Perimeter lip
-    lip_w = cw - 1
-    lip_l = cl - 1
-    lip_h = 1.5
-    lip_t = WALL
-    parts.append(_box_triangles(-(lip_w/2 - lip_t/2), 0, ch, lip_t, lip_l, lip_h))
-    parts.append(_box_triangles( (lip_w/2 - lip_t/2), 0, ch, lip_t, lip_l, lip_h))
-    parts.append(_box_triangles(0, -(lip_l/2 - lip_t/2), ch, lip_w - 2*lip_t, lip_t, lip_h))
-    parts.append(_box_triangles(0,  (lip_l/2 - lip_t/2), ch, lip_w - 2*lip_t, lip_t, lip_h))
-
+    lw, ll, lh, lt = cw - 1, cl - 1, 1.5, WALL
+    parts.append(_box_triangles(-(lw / 2 - lt / 2), 0, ch, lt, ll, lh))
+    parts.append(_box_triangles( (lw / 2 - lt / 2), 0, ch, lt, ll, lh))
+    parts.append(_box_triangles(0, -(ll / 2 - lt / 2), ch, lw - 2 * lt, lt, lh))
+    parts.append(_box_triangles(0,  (ll / 2 - lt / 2), ch, lw - 2 * lt, lt, lh))
     # Snap tabs
-    tab_w, tab_l, tab_h = 3, 6, 2
+    tw, tl, th = 3, 6, 2
     for end in [-1, 1]:
-        ty = end * (cl / 2 - tab_l / 2 - 1)
-        parts.append(_box_triangles(0, ty, ch, tab_w, tab_l, tab_h))
-        # Hook
-        parts.append(_box_triangles(0, ty + end * tab_l / 2, ch + tab_h - 0.3, tab_w, 1, 0.6))
+        ty = end * (cl / 2 - tl / 2 - 1)
+        parts.append(_box_triangles(0, ty, ch, tw, tl, th))
+        parts.append(_box_triangles(0, ty + end * tl / 2, ch + th - 0.3, tw, 1, 0.6))
 
     verts, faces = _combine_meshes(parts)
     return _make_stl(verts, faces)
 
 
 def generate_antenna_mount():
-    """Generate the SMA antenna mount / strain relief."""
+    """SMA antenna mount / strain relief."""
     parts = []
     mw, ml, mh = 16, 12, 10
-
-    # Main body
     parts.append(_box_triangles(0, 0, 0, mw, ml, mh))
-
-    # Flange
     fl_ext = 3
-    fl_h = 3
-    parts.append(_box_triangles(0, -ml/2 + fl_h/2, 0, mw + 2*fl_ext, fl_h, mh))
-
-    # SMA tube (representative cylinder)
-    parts.append(_cylinder_triangles(0, 0, mh/2 - SMA_D/2, SMA_D/2, ml, 16))
+    parts.append(_box_triangles(0, -ml / 2 + 1.5, 0, mw + 2 * fl_ext, 3, mh))
+    parts.append(_cylinder_triangles(0, 0, mh / 2 - SMA_D / 2, SMA_D / 2, ml, 16))
 
     verts, faces = _combine_meshes(parts)
     return _make_stl(verts, faces)
@@ -340,13 +340,15 @@ def generate_antenna_mount():
 GENERATORS = {
     "top_shell":      generate_top_shell,
     "bottom_shell":   generate_bottom_shell,
+    "keyboard_tray":  generate_keyboard_tray,
     "battery_cover":  generate_battery_cover,
     "antenna_mount":  generate_antenna_mount,
 }
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate Meshtastic Sliding Phone STL files")
+    parser = argparse.ArgumentParser(
+        description="Generate Meshtastic Sliding Phone STL files")
     parser.add_argument("--part", choices=list(GENERATORS.keys()),
                         help="Generate a single part (default: all)")
     parser.add_argument("--output-dir", default=OUTPUT_DIR,
@@ -363,7 +365,7 @@ def main():
         out_path = os.path.join(args.output_dir, f"{name}.stl")
         stl_mesh.save(out_path)
         tri_count = len(stl_mesh.vectors)
-        size_kb = os.path.getsize(out_path) / 1024
+        size_kb   = os.path.getsize(out_path) / 1024
         print(f"  → {out_path}  ({tri_count} triangles, {size_kb:.1f} KB)")
 
     print("\nAll parts generated successfully!")

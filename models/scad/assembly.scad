@@ -1,84 +1,90 @@
 // ============================================================================
-// Meshtastic Sliding Phone - Full Assembly View
+// Meshtastic Sliding Phone – Full Assembly View
 // ============================================================================
 // Combines all components into an exploded or assembled view for
-// visualization. Demonstrates the Sony Xperia-style arc sliding mechanism
-// where the top shell tilts upward when opened.
+// visualisation of the horizontal magnetic-detent slider mechanism.
+//
+// The keyboard tray slides in the −Y direction (toward the bottom of the
+// phone) along two parallel rail runners captured inside matching channels
+// on the bottom shell underside.  Neodymium disc magnets snap the tray into
+// the closed (travel = 0) and open (travel = keyboard_travel) positions.
 //
 // Not intended for printing — use individual part files.
 //
 // Usage:
 //   openscad assembly.scad
-//   Toggle 'exploded' variable to see parts separated or assembled.
-//   Adjust 'slide_position' (0..1) to animate the slide open/close.
+//   Toggle 'exploded' to see parts separated or assembled.
+//   Adjust 'slide_position' (0 = closed → 1 = fully open) to animate.
 // ============================================================================
 
 include <parameters.scad>
 use <utilities.scad>
 use <top_shell.scad>
 use <bottom_shell.scad>
+use <keyboard_tray.scad>
 use <battery_cover.scad>
 use <antenna_mount.scad>
 
 // --- Assembly mode ---
-exploded = true;  // Set to false for assembled view
-explode_gap = exploded ? 25 : 0;
+exploded       = true;             // false = assembled view
+explode_gap    = exploded ? 22 : 0;
 
-// --- Slide position (0 = closed, 1 = fully open with tilt) ---
-slide_position = exploded ? 0.8 : 0;
+// --- Slide position (0 = closed, 1 = fully open) ---
+slide_position = exploded ? 0.65 : 0;
+slide_offset   = slide_position * keyboard_travel;   // tray moves in −Y
 
-// --- Colors for visualization ---
-color_top     = [0.2, 0.2, 0.2, 0.85];  // Dark grey
-color_bottom  = [0.25, 0.25, 0.28, 0.9]; // Slightly lighter
-color_battery = [0.6, 0.15, 0.15, 0.9];  // Red accent
-color_antenna = [0.7, 0.7, 0.2, 0.9];    // Gold
+// --- Colours for visualisation ---
+color_top     = [0.18, 0.18, 0.18, 0.88];   // near-black body
+color_bottom  = [0.25, 0.25, 0.28, 0.92];   // dark grey body
+color_tray    = [0.15, 0.30, 0.48, 0.92];   // blue keyboard tray
+color_battery = [0.60, 0.14, 0.14, 0.90];   // red battery cover
+color_antenna = [0.70, 0.70, 0.18, 0.90];   // gold antenna
 
-total_bot_length = bot_shell_length;
+// ── Stack from bottom to top in assembled Z ──────────────────────────────
+// Z = 0                 : bottom of keyboard tray
+// Z = tray_z            : tray top face / bot-shell bottom face interface
+// Z = tray_z+bot_shell_z: bot-shell top / top-shell bottom interface
+// Z = phone_thickness   : top of display face
+// ─────────────────────────────────────────────────────────────────────────
 
-// --- Derived slide transforms ---
-// The top shell follows an arc path: as it slides back it tilts upward.
-// The rotation pivot is at the rear edge of the top shell.
-current_tilt   = slide_position * tilt_angle;
-slide_offset_y = slide_position * keyboard_travel;
+// --- Keyboard tray (slides in −Y; at Z = 0) ---
+color(color_tray)
+    translate([0, -slide_offset, -explode_gap * 0.5])
+        keyboard_tray();
 
-// --- Bottom shell ---
+// --- Bottom shell (stationary; at Z = tray_z) ---
 color(color_bottom)
-    translate([0, 0, 0])
+    translate([0, 0, tray_z])
         bottom_shell();
 
-// --- Top shell (Sony Xperia-style arc slide — tilts as it opens) ---
+// --- Top shell (stationary; at Z = tray_z + bot_shell_z) ---
 color(color_top)
-    translate([0,
-               keyboard_travel/2 - slide_offset_y/2 + explode_gap * 0.5,
-               bot_shell_z + explode_gap])
-        // Pivot around the rear bottom edge of the top shell
-        translate([0, -top_shell_length/2, 0])
-            rotate([current_tilt, 0, 0])
-                translate([0, top_shell_length/2, 0])
-                    top_shell();
+    translate([0, 0, tray_z + bot_shell_z + explode_gap])
+        top_shell();
 
-// --- Battery cover (snaps onto back of bottom shell) ---
+// --- Battery cover (snaps onto bottom-shell battery opening) ---
 color(color_battery)
     translate([0,
-               -total_bot_length/2 + wall + lipo_length/2 + 5,
-               -explode_gap])
+               phone_length/2 - wall - lipo_length/2 - 5,
+               tray_z - explode_gap * 0.5])
         rotate([180, 0, 0])
             battery_cover();
 
 // --- Antenna mount (top-right edge of bottom shell) ---
 color(color_antenna)
-    translate([bot_shell_width/2 - 12,
-               total_bot_length/2 + explode_gap * 0.3,
-               bot_shell_z/2 + 2])
+    translate([phone_width/2 - 12,
+               phone_length/2 + explode_gap * 0.3,
+               tray_z + bot_shell_z/2 + 2])
         rotate([90, 0, 0])
             antenna_mount();
 
-// --- Info text (shown in preview only) ---
+// --- Informational labels (preview only) ---
 if (exploded) {
-    translate([0, 0, phone_thickness + 3 * explode_gap + 5])
+    translate([0, 0, phone_thickness + 3 * explode_gap + 8])
         linear_extrude(height = 0.5)
             text("Meshtastic Sliding Phone", size = 6, halign = "center");
-    translate([0, 0, phone_thickness + 3 * explode_gap])
+    translate([0, 0, phone_thickness + 3 * explode_gap + 2])
         linear_extrude(height = 0.5)
-            text("Sony Xperia-style arc slider", size = 4, halign = "center");
+            text("Horizontal slider · magnetic detents · parallel rail guides",
+                 size = 3.2, halign = "center");
 }
