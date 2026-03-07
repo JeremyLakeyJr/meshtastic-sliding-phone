@@ -75,6 +75,8 @@ module arc_slot_2d(r, angle, sw) {
                 circle(r = r - sw/2);
             }
             // Limit to the desired angular sweep (centered on +Y axis)
+            // Scale factor 1.5 ensures the sector polygon extends beyond
+            // the outer arc ring so the intersection clips cleanly.
             polygon(points = [
                 [0, 0],
                 [r * 1.5 * sin(-angle/2), r * 1.5 * cos(-angle/2)],

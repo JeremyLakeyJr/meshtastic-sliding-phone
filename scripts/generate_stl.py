@@ -63,6 +63,11 @@ GUIDE_PIN_H = 3.0        # Height of guide pins
 GUIDE_SLOT_W = 3.6       # Width of arc channel (guide_pin_d + clearance)
 GUIDE_SLOT_DEPTH = 3.5   # Depth of arc channel in side wall
 
+# Guide pin / arc channel positioning
+PIN_EDGE_INSET = 15.0    # How far guide pins are inset from shell edges (Y-axis)
+PIN_WALL_INSET = 1.0     # Additional inset from inner wall face (X-axis)
+ARC_SLOT_MARGIN = 20.0   # Extra length beyond keyboard_travel for arc slot
+
 SMA_D = 6.5
 USBC_W = 9.5
 USBC_H = 3.5
@@ -185,9 +190,9 @@ def generate_top_shell():
     pin_r = GUIDE_PIN_D / 2
     pin_h = GUIDE_PIN_H
     for side in [-1, 1]:
-        px = side * (w / 2 - WALL - GUIDE_PIN_D / 2 - 1)
+        px = side * (w / 2 - WALL - GUIDE_PIN_D / 2 - PIN_WALL_INSET)
         for pin_y_off in [-1, 1]:
-            py = pin_y_off * (l / 2 - 15)
+            py = pin_y_off * (l / 2 - PIN_EDGE_INSET)
             parts.append(_cylinder_triangles(px, py, -pin_h, pin_r, pin_h, 16))
 
     # PCB mounting posts (4 cylinders, align Heltec V4 under OLED viewport)
@@ -231,11 +236,12 @@ def generate_bottom_shell():
     # Arc guide channel representations (simplified as rectangular slots)
     # In the full OpenSCAD model these are curved arcs; the STL generator
     # approximates them as straight slots since CSG booleans are not available.
-    arc_slot_l = KEYBOARD_TRAVEL + 20
+    arc_slot_l = KEYBOARD_TRAVEL + ARC_SLOT_MARGIN
     for side in [-1, 1]:
-        sx = side * (w / 2 - WALL - GUIDE_PIN_D / 2 - 1)
-        for pin_y in [l / 2 - 15, -l / 2 + 15 + KEYBOARD_TRAVEL]:
-            parts.append(_box_triangles(sx, pin_y - arc_slot_l / 2 + 10,
+        sx = side * (w / 2 - WALL - GUIDE_PIN_D / 2 - PIN_WALL_INSET)
+        for pin_y in [l / 2 - PIN_EDGE_INSET,
+                      -l / 2 + PIN_EDGE_INSET + KEYBOARD_TRAVEL]:
+            parts.append(_box_triangles(sx, pin_y - arc_slot_l / 2 + ARC_SLOT_MARGIN / 2,
                                         d, GUIDE_SLOT_W, arc_slot_l,
                                         GUIDE_SLOT_DEPTH))
 
@@ -249,12 +255,12 @@ def generate_bottom_shell():
 
     # Arc channel end-stops (prevents top shell from sliding off)
     for side in [-1, 1]:
-        sx = side * (w / 2 - WALL - GUIDE_PIN_D / 2 - 1)
+        sx = side * (w / 2 - WALL - GUIDE_PIN_D / 2 - PIN_WALL_INSET)
         # Front end-stop
-        parts.append(_box_triangles(sx, l / 2 - 12, d,
+        parts.append(_box_triangles(sx, l / 2 - PIN_EDGE_INSET + 3, d,
                                     GUIDE_SLOT_W + 2, 2, guide_h))
         # Rear end-stop
-        parts.append(_box_triangles(sx, -l / 2 + 12 + KEYBOARD_TRAVEL, d,
+        parts.append(_box_triangles(sx, -l / 2 + PIN_EDGE_INSET - 3 + KEYBOARD_TRAVEL, d,
                                     GUIDE_SLOT_W + 2, 2, guide_h))
 
     # CardKB pocket (rectangular recess for the keyboard module)
