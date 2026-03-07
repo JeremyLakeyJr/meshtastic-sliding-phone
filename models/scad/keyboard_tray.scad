@@ -20,10 +20,10 @@
 //   The channels are 1 mm deeper (rail_channel_h = 3.5 mm) so the runners
 //   float freely in Z — friction is only on the runner side-faces.
 //
-// Magnetic detents (neodymium disc magnets, 5 mm dia × 2 mm thick, N42)
+// Magnetic detents (neodymium disc magnets, 10 mm dia × 4 mm thick, N42)
 //   Two press-fit pockets on the tray top face, centred at ±magnet_y = ±20 mm,
 //   at tray-local X = +detent_x_offset = +28 mm.
-//   Pocket bore = magnet_d − 0.1 mm (4.9 mm) for press-fit retention.
+//   Pocket bore = magnet_d − 0.1 mm (9.9 mm) for press-fit retention.
 //   A shallow retention lip (0.2 mm narrower, 0.5 mm deep) prevents magnets
 //   from backing out.  Magnets sit 0.5 mm below the tray surface.
 //   Combined with the 1 mm rail standoff and the 0.5 mm recess in the
