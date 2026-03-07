@@ -1,24 +1,24 @@
 // ============================================================================
-// Meshtastic Sliding Phone - Utility Modules
+// Meshtastic Sliding Phone – Utility Modules
 // ============================================================================
-// Reusable shapes and helpers for all phone components.
+// Reusable shapes and helpers shared by all phone components.
 // ============================================================================
 
 include <parameters.scad>
 
-// Rounded rectangle (2D profile for linear_extrude)
+// --- 2-D rounded rectangle (profile for linear_extrude) ---
 module rounded_rect(w, h, r) {
     offset(r = r)
         square([w - 2*r, h - 2*r], center = true);
 }
 
-// Rounded box (3D)
+// --- 3-D rounded box ---
 module rounded_box(w, h, d, r) {
     linear_extrude(height = d)
         rounded_rect(w, h, r);
 }
 
-// Hollow rounded box (shell)
+// --- Hollow rounded shell ---
 module rounded_shell(w, h, d, r, t) {
     difference() {
         rounded_box(w, h, d, r);
@@ -27,7 +27,7 @@ module rounded_shell(w, h, d, r, t) {
     }
 }
 
-// Screw post (solid cylinder with screw hole)
+// --- Screw post (solid cylinder with through hole) ---
 module screw_post(h, od, id) {
     difference() {
         cylinder(h = h, d = od);
@@ -36,7 +36,7 @@ module screw_post(h, od, id) {
     }
 }
 
-// Grid of rounded rectangles (for speaker grille, ventilation)
+// --- Speaker / vent grille pattern ---
 module grille_pattern(cols, rows, slot_w, slot_h, spacing, slot_r) {
     total_w = cols * (slot_w + spacing) - spacing;
     total_h = rows * (slot_h + spacing) - spacing;
@@ -48,61 +48,43 @@ module grille_pattern(cols, rows, slot_w, slot_h, spacing, slot_r) {
                     rounded_rect(slot_w, slot_h, slot_r);
 }
 
-// ---------------------------------------------------------------------------
-// Arc slider modules (Sony Xperia-style curved sliding mechanism)
-// ---------------------------------------------------------------------------
-// The top shell slides along an arc path so that it tilts upward when opened,
-// providing a comfortable viewing angle.  Guide pins on the top shell ride
-// inside arc-shaped channels cut into the inner side walls of the bottom shell.
-// Small detent bumps at the open and closed positions provide tactile snap.
-// ---------------------------------------------------------------------------
+// ============================================================================
+// Horizontal slider – rail modules
+// ============================================================================
+// The keyboard tray has two parallel rectangular runners on its top face.
+// These runners slide inside matching channels in the bottom-shell underside,
+// constraining lateral (X-axis) drift and keeping the slide straight.
+//
+// The channel is intentionally 1 mm deeper than the runner is tall, creating
+// a 1 mm air-gap standoff between the tray top face and the shell underside.
+// This standoff reduces friction during sliding and sets a predictable gap
+// for the neodymium magnet detents.
+// ============================================================================
 
-// Guide pin (cylindrical pin protruding from top-shell underside)
-module guide_pin(d, h) {
-    cylinder(h = h, d = d);
+// A single rectangular runner – placed on the tray top face, protruding up.
+//   length = Y-axis extent of the runner
+module rail_runner(length) {
+    cube([rail_w, length, rail_h]);
 }
 
-// 2D arc slot profile – a slot that follows a circular arc.
-//   r     = arc radius (center of curvature is below the shell)
-//   angle = sweep angle of the arc (degrees)
-//   sw    = slot width (perpendicular to arc direction)
-module arc_slot_2d(r, angle, sw) {
-    difference() {
-        // Outer arc ring
-        intersection() {
-            difference() {
-                circle(r = r + sw/2);
-                circle(r = r - sw/2);
-            }
-            // Limit to the desired angular sweep (centered on +Y axis)
-            // Scale factor 1.5 ensures the sector polygon extends beyond
-            // the outer arc ring so the intersection clips cleanly.
-            polygon(points = [
-                [0, 0],
-                [r * 1.5 * sin(-angle/2), r * 1.5 * cos(-angle/2)],
-                [0, r * 1.5],
-                [r * 1.5 * sin(angle/2), r * 1.5 * cos(angle/2)]
-            ]);
-        }
-    }
+// The void to subtract from the bot-shell underside to form one rail channel.
+//   length = Y-axis extent (pass phone_length; +2 extra mm for open ends)
+module rail_channel_void(length) {
+    cube([rail_channel_w, length + 2, rail_channel_h]);
 }
 
-// 3D arc guide channel – extrudes the arc slot profile to form a channel
-// cut into a side wall.
-//   r     = arc radius
-//   angle = sweep angle (degrees)
-//   sw    = slot width
-//   depth = depth of the channel (extrusion thickness)
-module arc_guide_channel(r, angle, sw, depth) {
-    linear_extrude(height = depth)
-        arc_slot_2d(r, angle, sw);
-}
-
-// Detent bump – small raised bump placed inside an arc channel to create
-// a snap-in position.  The guide pin rides over it with a slight click.
-//   d = bump diameter, h = bump height
-module detent_bump(d, h) {
-    sphere(d = d);
-    // Add a small cylinder base for printability
-    cylinder(h = h, d1 = d, d2 = d * 0.6);
+// ============================================================================
+// Magnet-pocket module
+// ============================================================================
+// Cylindrical press-fit pocket for one neodymium disc magnet (5 mm × 2 mm).
+// The pocket is 0.5 mm deeper than the magnet so the magnet sits 0.5 mm
+// below the face — this recess, combined with the 1 mm rail standoff, gives
+// a guaranteed 2 mm air gap between opposing magnet faces:
+//
+//   gap = rail_standoff + 2 × pocket_recess = 1.0 + 0.5 + 0.5 = 2.0 mm
+//
+// The extra 0.1 mm on the cylinder height ensures a clean boolean cut.
+// ============================================================================
+module magnet_pocket() {
+    cylinder(h = magnet_pocket_h + 0.1, d = magnet_pocket_d);
 }

@@ -1,11 +1,11 @@
 // ============================================================================
-// Meshtastic Sliding Phone - Battery Cover
+// Meshtastic Sliding Phone – Battery Cover
 // ============================================================================
 // Snap-fit battery door that covers the LiPo cell compartment on the
-// back of the bottom shell. Features a latch mechanism for tool-free
-// battery swaps in the field.
+// bottom shell.  Features a latch mechanism for tool-free battery swaps.
+// Dimensions are derived from lipo_width and lipo_length in parameters.scad.
 //
-// Print settings: 0.2mm layer height, 100% infill for snap strength
+// Print settings: 0.2 mm layer height, 100 % infill for snap strength
 // ============================================================================
 
 include <parameters.scad>

@@ -1,83 +1,129 @@
 // ============================================================================
-// Meshtastic Sliding Phone - Shared Parameters
+// Meshtastic Sliding Phone – Shared Parameters
 // ============================================================================
-// All dimensions in millimeters. Adjust these values to fit your specific
-// hardware revision and printer tolerances.
+// All dimensions in millimeters.
+//
+// Form factor: horizontal slider phone (Nokia N900-style).
+//   Closed: 120 × 74 × 27 mm     Open: ~162 × 74 × 27 mm
+//
+// Mechanism: the keyboard tray slides horizontally in the −Y direction
+// along two parallel rectangular side rails.  Small recessed neodymium disc
+// magnets create snap detents at the closed and open positions and provide
+// continuous Z-axis retention that keeps the tray against the phone body
+// during sliding.
 // ============================================================================
 
-// --- Overall phone dimensions (closed position) ---
-phone_length    = 165;   // Y-axis (tall) — accommodates PCB + battery + keyboard in same footprint
-phone_width     = 74;    // X-axis (wide) — accommodates 58.2mm CardKB + rails
-phone_thickness = 24;    // Z-axis (thick) — top_shell_z + bot_shell_z
+// --- Overall phone body footprint (closed) ---
+phone_length    = 120;   // Y: body length (Nokia N900 = 110.9 mm for reference)
+phone_width     =  74;   // X: body width  (accommodates 59 mm CardKB + rails)
+
+// --- Shell / tray heights ---
+top_shell_z     =  10;   // Top shell    – display face, Heltec PCB
+bot_shell_z     =   9;   // Bottom shell – LiPo battery, USB-C, SMA, rail channels
+tray_z          =   8;   // Keyboard tray – CardKB pocket, rail runners, magnets
+
+// Total closed thickness (informational)
+phone_thickness = top_shell_z + bot_shell_z + tray_z;   // 27 mm
 
 // --- Wall thickness and tolerances ---
-wall            = 1.8;   // General wall thickness
-clearance       = 0.3;   // Sliding fit clearance per side
-corner_radius   = 4;     // Rounded corner radius
+wall            = 2.0;   // General wall / shell thickness
+clearance       = 0.3;   // Sliding-fit clearance per side
+corner_radius   = 4.0;   // Rounded corner radius
 
-// --- Display viewport (Heltec V4 built-in 0.96" OLED, 128×64) ---
-display_w       = 21;    // Viewable width
-display_h       = 11;    // Viewable height
-display_offset_y = 15;   // Offset from top edge of top shell
-display_depth   = 2.0;   // Viewport depth (through top-shell wall only)
+// --- Display viewport (Heltec V4 built-in 0.96″ OLED, 128×64) ---
+display_w        = 21;   // Viewable width
+display_h        = 11;   // Viewable height
+display_offset_y = 12;   // Distance from top edge of top shell to viewport centre
+display_depth    =  2.0; // Countersink depth (protects display glass)
 
-// --- Heltec WiFi LoRa 32 V4 board dimensions ---
-pcb_length      = 55;    // Board length
-pcb_width       = 27;    // Board width
-pcb_thickness   = 1.6;   // PCB thickness
-pcb_clearance   = 10;    // Component height above PCB (incl. OLED module)
+// --- Heltec WiFi LoRa 32 V4 board ---
+pcb_length      = 55;    // Board Y length
+pcb_width       = 27;    // Board X width
+pcb_thickness   =  1.6;  // PCB thickness
+pcb_clearance   =  8;    // Component height above PCB (OLED module, antenna, etc.)
 
-// --- LiPo battery (MakerFocus, 3.7 V, 3000 mAh, ~65×36×10 mm) ---
-lipo_thickness  = 12;    // Battery thickness with tolerance (10 mm + 2 mm)
-lipo_width      = 38;    // Battery width with tolerance  (36 mm + 2 mm)
-lipo_length     = 67;    // Battery length with tolerance (65 mm + 2 mm)
+// --- LiPo battery (slim 3.7 V pouch, ~50×40×5 mm nominal) ---
+lipo_thickness  =  6;    // 5 mm nominal + 1 mm tolerance
+lipo_width      = 42;    // 40 mm + 2 mm tolerance
+lipo_length     = 52;    // 50 mm + 2 mm tolerance
 
 // --- CardKB keyboard module (M5Stack CardKB, I²C) ---
-cardkb_length    = 59;   // Module length (58.2 mm nominal + 0.8 mm tolerance)
-cardkb_width     = 28;   // Module width  (27.6 mm nominal + 0.4 mm tolerance)
-cardkb_thickness = 8;    // Module thickness (7.5 mm nominal + 0.5 mm tolerance)
+cardkb_length    = 59;   // Long axis – runs along phone X-axis when installed
+cardkb_width     = 28;   // Short axis – along sliding Y-axis (sets min travel)
+cardkb_thickness =  7;   // Height (Z)
 
-// --- Keyboard travel (how far the top shell slides to expose CardKB) ---
-keyboard_travel  = 35;   // Must be ≥ cardkb_width + wall margins
+// --- Keyboard slide travel ---
+keyboard_travel  = 42;   // mm; fully exposes CardKB (≥ cardkb_width + 14 mm margin)
 
-// --- Arc slide mechanism (Sony Xperia-style curved slider) ---
-// The top shell slides along a curved arc path, tilting upward as it opens.
-// Guide pins on the top shell ride inside arc-shaped channels in the bottom.
-arc_radius       = 200;  // Radius of the curved arc path (mm)
-tilt_angle       = 25;   // Maximum tilt angle when fully open (degrees)
-guide_pin_d      = 3;    // Diameter of guide pins on top shell
-guide_pin_h      = 3;    // Height of guide pins (how far they protrude)
-guide_slot_width = 3.6;  // Width of arc channel (guide_pin_d + clearance)
-guide_slot_depth = 3.5;  // Depth of arc channel in side wall
-num_guide_pins   = 2;    // Number of guide pins per side
-detent_depth     = 0.4;  // Depth of snap detent notches (open/closed positions)
-detent_width     = 2;    // Width of each detent notch
+// ============================================================================
+// Parallel side-rail system
+// ============================================================================
+// Two rectangular-section runners on the keyboard-tray top face protrude
+// upward into matching channels cut into the bottom-shell underside.
+// The runner width (X) constrains lateral drift; the channel depth is
+// intentionally greater than the runner height so the runners do NOT touch
+// the channel ceiling – this creates a 1 mm air gap (standoff) between the
+// tray top face and the shell underside, giving low-friction sliding.
+//
+//   Standoff = rail_channel_h − rail_h = 3.5 − 2.5 = 1.0 mm
+// ============================================================================
+rail_w          =  4.0;  // Runner width  (X direction)
+rail_h          =  2.5;  // Runner height (Z, protrudes above tray top face)
+rail_x          = 32.0;  // ±X distance from phone centreline to runner centre
+
+// Channel in bot-shell underside (slightly wider + intentionally deeper)
+rail_channel_w  = rail_w + 2 * clearance;   // 4.6 mm  – snug sliding fit
+rail_channel_h  = rail_h + 1.0;             // 3.5 mm  – 1 mm standoff
+
+// ============================================================================
+// Neodymium disc-magnet detents
+// ============================================================================
+// Standard part: 5 mm dia × 2 mm thick, N42 grade.
+// Each pocket is sized for a light press-fit (0.1 mm under-bore).
+// Both opposing pockets are 0.5 mm deeper than the magnet so the magnet sits
+// 0.5 mm below the face.  Guaranteed gap between opposing faces:
+//
+//   gap = standoff + 2 × recess = 1.0 + 0.5 + 0.5 = 2.0 mm  ✓
+//
+// Magnets must NEVER touch – the rail standoff makes this a hard guarantee.
+// ============================================================================
+magnet_d        =  5.0;  // Disc diameter
+magnet_h        =  2.0;  // Disc thickness
+magnet_pocket_d =  5.2;  // Pocket bore  (light press-fit)
+magnet_pocket_h =  2.5;  // Pocket depth = magnet_h + 0.5 mm recess
+
+// Magnet X positions (centred between the two rails at ±rail_x = ±32 mm)
+magnet_x        = 16.0;  // ±X from phone centreline
+
+// Detent Y positions in the PHONE-BODY frame (bot-shell local coordinates):
+//   Closed snap : body_Y = +detent_y_offset
+//   Open   snap : body_Y = +detent_y_offset − keyboard_travel  (= +35 − 42 = −7 mm)
+//
+// The keyboard-tray magnets sit at tray-local Y = +detent_y_offset.
+// • When travel = 0  (closed): tray magnets align with body closed-snap pockets. ✓
+// • When travel = 42 (open):   tray magnets align with body open-snap pockets.  ✓
+detent_y_offset = 35.0;  // mm from body centre toward +Y (top edge)
 
 // --- Antenna (SMA connector) ---
-sma_diameter     = 6.5;  // SMA connector hole
-sma_flat_width   = 8;    // Wrench flat width
+sma_diameter    =  6.5;
+sma_flat_width  =  8.0;
 
 // --- USB-C port ---
-usbc_width       = 9.5;
-usbc_height      = 3.5;
+usbc_width      =  9.5;
+usbc_height     =  3.5;
 
-// --- Speaker and microphone ---
+// --- Speaker / microphone ---
 speaker_diameter = 12;
-mic_diameter     = 2;
+mic_diameter     =  2;
 
-// --- Screw posts ---
-screw_hole_d     = 2.2;  // M2 screw
-screw_post_d     = 5;
-screw_post_h     = 6;
+// --- Screw posts (M2) ---
+screw_hole_d    =  2.2;
+screw_post_d    =  5.0;
+screw_post_h    =  5.0;
 
-// --- Derived dimensions ---
-top_shell_length  = phone_length;
-top_shell_width   = phone_width;
-top_shell_z       = 9;    // Top shell height (display face + buttons)
+// --- Legacy aliases (used by battery_cover / antenna_mount) ---
+bot_shell_length = phone_length;
+bot_shell_width  = phone_width;
 
-bot_shell_length  = phone_length;      // Same footprint as top shell
-bot_shell_width   = phone_width;
-bot_shell_z       = 15;   // Bottom shell height (fits 12 mm MakerFocus battery + mechanics)
-
-// --- Quality settings ---
-$fn = 40;  // Facet count for curves (increase for smoother exports)
+// --- Quality ---
+$fn = 48;  // Facet count for circles (increase for final export)
