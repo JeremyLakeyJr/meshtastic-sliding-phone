@@ -3,14 +3,16 @@
 // ============================================================================
 // All dimensions in millimeters.
 //
-// Form factor: horizontal slider phone (Nokia N900-style).
-//   Closed: 120 × 74 × 27 mm     Open: ~162 × 74 × 27 mm
+// Form factor: landscape slider phone (Nokia N900-style).
+//   Closed: 74 × 120 × 27 mm (X × Y × Z)   Open: ~116 × 120 × 27 mm
 //
-// Mechanism: the keyboard tray slides horizontally in the −Y direction
-// along two parallel rectangular side rails.  Small recessed neodymium disc
-// magnets create snap detents at the closed and open positions and provide
-// continuous Z-axis retention that keeps the tray against the phone body
-// during sliding.
+// Mechanism: the keyboard tray slides in the −X direction (shortways, along
+// the 74 mm short axis) along two parallel rectangular top/bottom rails.
+// Holding the phone in landscape (120 mm horizontal, 74 mm vertical), the
+// keyboard slides downward to expose the CardKB — the same motion as the
+// Nokia N900.  Small recessed neodymium disc magnets create snap detents at
+// the closed and open positions and provide continuous Z-axis retention that
+// keeps the tray against the phone body during sliding.
 // ============================================================================
 
 // --- Overall phone body footprint (closed) ---
@@ -31,16 +33,19 @@ clearance       = 0.3;   // Sliding-fit clearance per side
 corner_radius   = 4.0;   // Rounded corner radius
 
 // --- Display viewport (Heltec V4 built-in 0.96″ OLED, 128×64) ---
-display_w        = 21;   // Viewable width
-display_h        = 11;   // Viewable height
+// Cutout is sized with a small margin to accept an optional capacitive
+// touch-overlay panel on top of the OLED glass (the V4 exposes 7 touch pins).
+display_w        = 23;   // Viewable width  (21 mm OLED + 2 mm touch-overlay margin)
+display_h        = 13;   // Viewable height (11 mm OLED + 2 mm touch-overlay margin)
 display_offset_y = 12;   // Distance from top edge of top shell to viewport centre
-display_depth    =  2.0; // Countersink depth (protects display glass)
+display_depth    =  2.0; // Countersink depth (protects display / touch glass)
 
-// --- Heltec WiFi LoRa 32 V4 board ---
-pcb_length      = 55;    // Board Y length
-pcb_width       = 27;    // Board X width
+// --- Heltec WiFi LoRa 32 V4 board (ESP32-S3 + SX1262 + 0.96″ OLED) ---
+// Actual PCB dimensions: 51.7 × 25.4 × 10.7 mm (with display casing).
+pcb_length      = 52;    // Board Y length (rounded from 51.7 mm)
+pcb_width       = 26;    // Board X width  (rounded from 25.4 mm)
 pcb_thickness   =  1.6;  // PCB thickness
-pcb_clearance   =  8;    // Component height above PCB (OLED module, antenna, etc.)
+pcb_clearance   =  9;    // Component height above PCB (OLED casing, antenna, etc.)
 
 // --- LiPo battery (slim 3.7 V pouch, ~50×40×5 mm nominal) ---
 lipo_thickness  =  6;    // 5 mm nominal + 1 mm tolerance
@@ -48,28 +53,30 @@ lipo_width      = 42;    // 40 mm + 2 mm tolerance
 lipo_length     = 52;    // 50 mm + 2 mm tolerance
 
 // --- CardKB keyboard module (M5Stack CardKB, I²C) ---
-cardkb_length    = 59;   // Long axis – runs along phone X-axis when installed
-cardkb_width     = 28;   // Short axis – along sliding Y-axis (sets min travel)
+cardkb_length    = 59;   // Long axis – runs along phone Y-axis when installed
+cardkb_width     = 28;   // Short axis – along sliding X-axis (sets min travel)
 cardkb_thickness =  7;   // Height (Z)
 
 // --- Keyboard slide travel ---
 keyboard_travel  = 42;   // mm; fully exposes CardKB (≥ cardkb_width + 14 mm margin)
 
 // ============================================================================
-// Parallel side-rail system
+// Parallel top/bottom-rail system
 // ============================================================================
 // Two rectangular-section runners on the keyboard-tray top face protrude
 // upward into matching channels cut into the bottom-shell underside.
-// The runner width (X) constrains lateral drift; the channel depth is
+// The runners run along the X axis (the 74 mm SHORT side of the phone),
+// positioned at Y = ±rail_y from the phone centreline (top and bottom edges).
+// The runner width (Y) constrains front/back drift; the channel depth is
 // intentionally greater than the runner height so the runners do NOT touch
 // the channel ceiling – this creates a 1 mm air gap (standoff) between the
 // tray top face and the shell underside, giving low-friction sliding.
 //
 //   Standoff = rail_channel_h − rail_h = 3.5 − 2.5 = 1.0 mm
 // ============================================================================
-rail_w          =  4.0;  // Runner width  (X direction)
+rail_w          =  4.0;  // Runner width  (Y direction)
 rail_h          =  2.5;  // Runner height (Z, protrudes above tray top face)
-rail_x          = 32.0;  // ±X distance from phone centreline to runner centre
+rail_y          = 40.0;  // ±Y distance from phone centreline to runner centre
 
 // Channel in bot-shell underside (slightly wider + intentionally deeper)
 rail_channel_w  = rail_w + 2 * clearance;   // 4.6 mm  – snug sliding fit
@@ -92,17 +99,17 @@ magnet_h        =  2.0;  // Disc thickness
 magnet_pocket_d =  5.2;  // Pocket bore  (light press-fit)
 magnet_pocket_h =  2.5;  // Pocket depth = magnet_h + 0.5 mm recess
 
-// Magnet X positions (centred between the two rails at ±rail_x = ±32 mm)
-magnet_x        = 16.0;  // ±X from phone centreline
+// Magnet Y positions (centred between the two rails at ±rail_y = ±40 mm)
+magnet_y        = 20.0;  // ±Y from phone centreline
 
-// Detent Y positions in the PHONE-BODY frame (bot-shell local coordinates):
-//   Closed snap : body_Y = +detent_y_offset
-//   Open   snap : body_Y = +detent_y_offset − keyboard_travel  (= +35 − 42 = −7 mm)
+// Detent X positions in the PHONE-BODY frame (bot-shell local coordinates):
+//   Closed snap : body_X = +detent_x_offset
+//   Open   snap : body_X = +detent_x_offset − keyboard_travel  (= +28 − 42 = −14 mm)
 //
-// The keyboard-tray magnets sit at tray-local Y = +detent_y_offset.
+// The keyboard-tray magnets sit at tray-local X = +detent_x_offset.
 // • When travel = 0  (closed): tray magnets align with body closed-snap pockets. ✓
 // • When travel = 42 (open):   tray magnets align with body open-snap pockets.  ✓
-detent_y_offset = 35.0;  // mm from body centre toward +Y (top edge)
+detent_x_offset = 28.0;  // mm from body centre toward +X (right edge)
 
 // --- Antenna (SMA connector) ---
 sma_diameter    =  6.5;

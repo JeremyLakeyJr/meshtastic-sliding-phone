@@ -4,7 +4,7 @@
 
 | Qty | Component | Specification | Notes |
 |-----|-----------|--------------|-------|
-| 1 | Heltec WiFi LoRa 32 V4 | ESP32-S3 + SX1262 LoRa + built-in 0.96" OLED | Main controller board (~55×27 mm) |
+| 1 | Heltec WiFi LoRa 32 V4 | ESP32-S3 + SX1262 LoRa + built-in 0.96" OLED, 7 capacitive touch pins | Main controller board (51.7 × 25.4 mm, ≈52 × 26 mm) |
 | 1 | M5Stack CardKB | I²C QWERTY keyboard, 58.2×27.6 mm, 3.3 V/5 V | Connects to Heltec V4 via I²C |
 | 1 | LiPo Battery | 3.7 V, slim pouch ~50×40×5 mm, ≥ 800 mAh | JST PH 2.0 or JST 1.25 mm 2-pin connector |
 | 1 | LoRa Antenna | SMA, 868 MHz or 915 MHz (region-dependent) | Stubby or flexible whip style |
@@ -54,9 +54,13 @@ Verify orientation before gluing: wrong polarity will repel instead of snap.
 1. Press-fit magnets into the bottom-shell pockets (check polarity!).
 2. Press-fit magnets into the keyboard-tray pockets (opposing pole faces up).
 3. Apply a thin coat of PTFE grease to the rail runners.
-4. Slide the keyboard tray in from the **−Y (front) end** of the bottom shell.
+4. Slide the keyboard tray in from the **−X (left) end** of the bottom shell.
+   Hold the phone landscape (120 mm wide, 74 mm tall) — the keyboard slides
+   downward to expose the CardKB, just like a Nokia N900.
 5. Snap the tray closed — the magnetic click should be clearly perceptible.
-6. Assemble electronics: mount Heltec V4 PCB with M2 screws, route I²C cable.
+6. Assemble electronics: mount Heltec V4 PCB (51.7 × 25.4 mm) with M2 screws,
+   route I²C cable from CardKB.  The V4's 7 touch pins can be connected to an
+   optional capacitive touch overlay panel placed over the OLED viewport.
 7. Close and screw the top shell onto the bottom shell (four corner M2 screws).
 
 ## Optional Add-ons
@@ -65,7 +69,8 @@ Verify orientation before gluing: wrong polarity will repel instead of snap.
 |-----------|---------|
 | Wrist strap loop | Attach lanyard/strap for field use |
 | Belt clip adapter | Clip to belt or MOLLE webbing |
-| Screen protector film | Cut to 23×13 mm for OLED viewport |
+| Capacitive touch overlay | 23 × 13 mm panel over OLED viewport; wire to V4 touch pins |
+| Screen protector film | Cut to 23×13 mm for OLED/touch viewport |
 | Rubber bumpers (4×) | Stick-on feet for table use |
 | USB-C cable (short) | Charging / firmware flash |
 | External GPS module | Add GPS capability (Heltec V4 has no on-board GPS) |
