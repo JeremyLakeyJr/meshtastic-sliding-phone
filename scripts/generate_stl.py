@@ -25,9 +25,9 @@ from stl import mesh
 # ---------------------------------------------------------------------------
 # Parameters (mirrors parameters.scad)
 # ---------------------------------------------------------------------------
-PHONE_LENGTH = 120.0
+PHONE_LENGTH = 165.0
 PHONE_WIDTH = 74.0
-PHONE_THICKNESS = 15.0
+PHONE_THICKNESS = 24.0
 
 WALL = 1.8
 CORNER_R = 4.0
@@ -43,10 +43,10 @@ DISPLAY_DEPTH = 2.0
 PCB_LENGTH = 55.0
 PCB_WIDTH = 27.0
 
-# LiPo battery (503450)
-LIPO_THICKNESS = 6.0
-LIPO_WIDTH = 35.0
-LIPO_LENGTH = 51.0
+# LiPo battery (MakerFocus 3000 mAh, 3.7 V, ~65×36×10 mm nominal)
+LIPO_THICKNESS = 12.0   # 10 mm + 2 mm tolerance
+LIPO_WIDTH = 38.0       # 36 mm + 2 mm tolerance
+LIPO_LENGTH = 67.0      # 65 mm + 2 mm tolerance
 
 # CardKB keyboard module (M5Stack CardKB) — nominal + tolerance
 CARDKB_LENGTH = 59.0    # 58.2 mm nominal + 0.8 mm tolerance
@@ -72,9 +72,9 @@ SMA_D = 6.5
 USBC_W = 9.5
 USBC_H = 3.5
 
-TOP_Z = PHONE_THICKNESS / 2
-BOT_Z = PHONE_THICKNESS / 2
-BOT_LENGTH = PHONE_LENGTH + KEYBOARD_TRAVEL
+TOP_Z = 9.0          # Top shell height (display face + buttons)
+BOT_Z = 15.0         # Bottom shell height (fits 12 mm MakerFocus battery + mechanics)
+BOT_LENGTH = PHONE_LENGTH   # Same footprint as top shell
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "models", "stl")
 

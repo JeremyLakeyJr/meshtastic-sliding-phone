@@ -6,7 +6,7 @@
 |-----|-----------|--------------|-------|
 | 1 | Heltec WiFi LoRa 32 V4 | ESP32-S3 + SX1262 LoRa + built-in 0.96" OLED | Main controller board (~55×27mm) |
 | 1 | M5Stack CardKB | I²C QWERTY keyboard, 58.2×27.6mm, 3.3 V/5 V | Connects to Heltec V4 via I²C (Grove or direct wires) |
-| 1 | LiPo Battery | 3.7 V, 503450, ~1200 mAh (5×34×50 mm) | Flat pouch cell; JST 1.25 mm 2-pin connector |
+| 1 | LiPo Battery | 3.7 V, MakerFocus 3000 mAh (~65×36×10 mm) | Flat pouch cell; JST PH 2.0 or JST 1.25 mm 2-pin connector |
 | 1 | LoRa Antenna | SMA, 868 MHz or 915 MHz (region-dependent) | Stubby or flexible whip style |
 | 1 | GPS Antenna | IPX/U.FL ceramic patch | Optional — Heltec V4 does not have on-board GPS |
 
@@ -43,6 +43,6 @@
 
 - **Heltec WiFi LoRa 32 V4**: [Heltec Official Store](https://heltec.org/project/wifi-lora-32-v4/), [Amazon](https://www.amazon.com/s?k=heltec+wifi+lora+32+v4)
 - **M5Stack CardKB**: [M5Stack Official Store](https://shop.m5stack.com/products/cardkb-mini-keyboard-programmable-unit-v1-1-mega328p), [Amazon](https://www.amazon.com/s?k=m5stack+cardkb)
-- **LiPo 503450**: Any electronics supplier (Adafruit, Mouser, Amazon) — ensure JST 1.25 mm connector
+- **LiPo MakerFocus 3000 mAh**: [MakerFocus Store](https://www.makerfocus.com/products/makerfocus-3-7v-3000mah-lithium-rechargeable-battery-1s-3c-lipo-battery-pack-of-4), [Amazon](https://www.amazon.com/s?k=makerfocus+3000mah+lipo+battery) — ensure JST PH 2.0 or JST 1.25 mm 2-pin connector
 - **M2 Hardware**: Amazon, McMaster-Carr, local hardware store
 - **PETG Filament**: Any reputable brand (Prusament, eSun, Hatchbox)

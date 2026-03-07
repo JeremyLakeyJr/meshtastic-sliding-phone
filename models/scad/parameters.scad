@@ -6,9 +6,9 @@
 // ============================================================================
 
 // --- Overall phone dimensions (closed position) ---
-phone_length    = 120;   // Y-axis (tall)
+phone_length    = 165;   // Y-axis (tall) — accommodates PCB + battery + keyboard in same footprint
 phone_width     = 74;    // X-axis (wide) — accommodates 58.2mm CardKB + rails
-phone_thickness = 15;    // Z-axis (thick) — slimmer with flat LiPo
+phone_thickness = 24;    // Z-axis (thick) — top_shell_z + bot_shell_z
 
 // --- Wall thickness and tolerances ---
 wall            = 1.8;   // General wall thickness
@@ -27,10 +27,10 @@ pcb_width       = 27;    // Board width
 pcb_thickness   = 1.6;   // PCB thickness
 pcb_clearance   = 10;    // Component height above PCB (incl. OLED module)
 
-// --- LiPo battery (503450, 3.7 V, ~1200 mAh) ---
-lipo_thickness  = 6;     // Battery thickness with tolerance
-lipo_width      = 35;    // Battery width with tolerance
-lipo_length     = 51;    // Battery length with tolerance
+// --- LiPo battery (MakerFocus, 3.7 V, 3000 mAh, ~65×36×10 mm) ---
+lipo_thickness  = 12;    // Battery thickness with tolerance (10 mm + 2 mm)
+lipo_width      = 38;    // Battery width with tolerance  (36 mm + 2 mm)
+lipo_length     = 67;    // Battery length with tolerance (65 mm + 2 mm)
 
 // --- CardKB keyboard module (M5Stack CardKB, I²C) ---
 cardkb_length    = 59;   // Module length (58.2 mm nominal + 0.8 mm tolerance)
@@ -73,11 +73,11 @@ screw_post_h     = 6;
 // --- Derived dimensions ---
 top_shell_length  = phone_length;
 top_shell_width   = phone_width;
-top_shell_z       = phone_thickness / 2;
+top_shell_z       = 9;    // Top shell height (display face + buttons)
 
-bot_shell_length  = phone_length + keyboard_travel;
+bot_shell_length  = phone_length;      // Same footprint as top shell
 bot_shell_width   = phone_width;
-bot_shell_z       = phone_thickness / 2;
+bot_shell_z       = 15;   // Bottom shell height (fits 12 mm MakerFocus battery + mechanics)
 
 // --- Quality settings ---
 $fn = 40;  // Facet count for curves (increase for smoother exports)
