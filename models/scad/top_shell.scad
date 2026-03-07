@@ -1,9 +1,12 @@
 // ============================================================================
 // Meshtastic Sliding Phone - Top Shell
 // ============================================================================
-// The upper sliding half of the phone. Contains a viewport window that
-// aligns with the Heltec V4's built-in 0.96" OLED display mounted on the
-// PCB below, speaker grille, and front-facing elements.
+// The upper sliding half of the phone. Uses Sony Xperia-style arc guide pins
+// on the underside that ride inside curved channels in the bottom shell.
+// When slid open the top shell tilts upward for a comfortable viewing angle.
+//
+// Contains a viewport window aligned with the Heltec V4's built-in 0.96"
+// OLED display, speaker grille, and front-facing elements.
 //
 // Print settings: 0.2mm layer height, 20% infill, supports for display recess
 // ============================================================================
@@ -17,12 +20,16 @@ module top_shell() {
             // --- Main body ---
             rounded_box(top_shell_width, top_shell_length, top_shell_z, corner_radius);
 
-            // --- Slide rails (male dovetail on bottom face, both sides) ---
+            // --- Arc guide pins (Sony Xperia-style, on underside, both sides) ---
+            // Two pins per side ride inside the curved arc channels in the
+            // bottom shell.  Pins are placed near the front and rear edges.
             for (side = [-1, 1]) {
-                translate([side * (top_shell_width/2 - wall - rail_width/2),
-                           0,
-                           -rail_height])
-                    dovetail_rail(rail_width, rail_height, rail_length_top);
+                for (pin_y_off = [-1, 1]) {
+                    translate([side * (top_shell_width/2 - wall - guide_pin_d/2 - 1),
+                               pin_y_off * (top_shell_length/2 - 15),
+                               -guide_pin_h])
+                        guide_pin(guide_pin_d, guide_pin_h);
+                }
             }
         }
 

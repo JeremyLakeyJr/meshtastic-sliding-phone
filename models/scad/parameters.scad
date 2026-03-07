@@ -40,11 +40,18 @@ cardkb_thickness = 8;    // Module thickness (7.5 mm nominal + 0.5 mm tolerance)
 // --- Keyboard travel (how far the top shell slides to expose CardKB) ---
 keyboard_travel  = 35;   // Must be ≥ cardkb_width + wall margins
 
-// --- Slide rail mechanism ---
-rail_width       = 4;    // Width of each rail
-rail_height      = 2;    // Height/depth of rail channel
-rail_length_top  = 100;  // Rail length on top shell
-rail_length_bot  = 100;  // Rail length on bottom shell
+// --- Arc slide mechanism (Sony Xperia-style curved slider) ---
+// The top shell slides along a curved arc path, tilting upward as it opens.
+// Guide pins on the top shell ride inside arc-shaped channels in the bottom.
+arc_radius       = 200;  // Radius of the curved arc path (mm)
+tilt_angle       = 25;   // Maximum tilt angle when fully open (degrees)
+guide_pin_d      = 3;    // Diameter of guide pins on top shell
+guide_pin_h      = 3;    // Height of guide pins (how far they protrude)
+guide_slot_width = 3.6;  // Width of arc channel (guide_pin_d + clearance)
+guide_slot_depth = 3.5;  // Depth of arc channel in side wall
+num_guide_pins   = 2;    // Number of guide pins per side
+detent_depth     = 0.4;  // Depth of snap detent notches (open/closed positions)
+detent_width     = 2;    // Width of each detent notch
 
 // --- Antenna (SMA connector) ---
 sma_diameter     = 6.5;  // SMA connector hole

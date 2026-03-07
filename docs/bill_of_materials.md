@@ -17,14 +17,14 @@
 | 8 | M2×8mm Screws | Pan head, Phillips or hex | PCB mounting |
 | 8 | M2 Nuts | Standard hex | Or use heat-set inserts |
 | 4 | M2 Heat-Set Inserts | M2, 3.5mm OD × 4mm length | Optional, replaces nuts |
-| 1 | Silicone Grease | Small tube, PTFE-based | For smooth slide rails |
+| 1 | Silicone Grease | Small tube, PTFE-based | For smooth arc slide channels |
 
 ## 3D Printed Parts
 
 | Qty | Part | Material | Infill | Supports |
 |-----|------|----------|--------|----------|
-| 1 | Top Shell | PETG/ASA | 20% | Yes (rail channels) |
-| 1 | Bottom Shell | PETG/ASA | 25% | Yes (rail channels) |
+| 1 | Top Shell | PETG/ASA | 20% | Yes (guide pin recesses) |
+| 1 | Bottom Shell | PETG/ASA | 25% | Yes (arc guide channels) |
 | 1 | Battery Cover | PETG/ASA | 100% | No |
 | 1 | Antenna Mount | PETG/ASA | 40% | No |
 
