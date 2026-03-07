@@ -2,9 +2,13 @@
 // Meshtastic Sliding Phone - Bottom Shell
 // ============================================================================
 // The lower half of the phone housing the Heltec V4 PCB, LiPo battery
-// compartment, CardKB keyboard pocket, and the female slide rail channels.
+// compartment, CardKB keyboard pocket, and the curved arc guide channels
+// for the Sony Xperia-style sliding mechanism.
 //
-// Print settings: 0.2mm layer height, 25% infill, supports for rail channels
+// The arc channels allow the top shell to slide and tilt upward when
+// opened, providing a comfortable viewing angle for the OLED display.
+//
+// Print settings: 0.2mm layer height, 25% infill, supports for arc channels
 // ============================================================================
 
 include <parameters.scad>
@@ -13,17 +17,22 @@ use <utilities.scad>
 module bottom_shell() {
     total_length = bot_shell_length;
 
+    // Compute the arc chord length from the tilt angle and arc radius
+    arc_chord = 2 * arc_radius * sin(tilt_angle / 2);
+
     difference() {
         union() {
             // --- Main body (extended for keyboard area) ---
             rounded_box(bot_shell_width, total_length, bot_shell_z, corner_radius);
 
-            // --- Raised rail guides along both sides ---
+            // --- Side walls that house the arc guide channels ---
+            // Slightly raised inner walls on both sides provide material for
+            // the curved guide channels to be cut into.
             for (side = [-1, 1]) {
                 translate([side * (bot_shell_width/2 - wall/2),
                            0,
                            bot_shell_z])
-                    rounded_box(wall, total_length, rail_height + wall, corner_radius/2);
+                    rounded_box(wall, total_length, guide_pin_h + wall, corner_radius/2);
             }
         }
 
@@ -34,12 +43,42 @@ module bottom_shell() {
                         bot_shell_z,
                         max(corner_radius - wall, 0.5));
 
-        // --- Slide rail channels (female dovetail, both sides) ---
+        // --- Arc guide channels (Sony Xperia-style curved slots, both sides) ---
+        // Each side has a curved slot cut into the inner face of the side wall.
+        // The arc sweeps through tilt_angle degrees so the top shell tilts when
+        // slid open.  Guide pins from the top shell ride in these channels.
         for (side = [-1, 1]) {
-            translate([side * (bot_shell_width/2 - wall - rail_width/2),
-                       0,
-                       bot_shell_z])
-                dovetail_channel(rail_width, rail_height, total_length - 10, clearance);
+            // Front guide channel (near top of phone)
+            translate([side * (bot_shell_width/2 - wall - 0.1),
+                       total_length/2 - 15,
+                       bot_shell_z - guide_slot_depth])
+                rotate([0, side * 90, 0])
+                    arc_guide_channel(arc_radius, tilt_angle, guide_slot_width, guide_slot_depth + 0.2);
+
+            // Rear guide channel (near bottom of phone)
+            translate([side * (bot_shell_width/2 - wall - 0.1),
+                       -total_length/2 + 15 + keyboard_travel,
+                       bot_shell_z - guide_slot_depth])
+                rotate([0, side * 90, 0])
+                    arc_guide_channel(arc_radius, tilt_angle, guide_slot_width, guide_slot_depth + 0.2);
+        }
+
+        // --- Detent notches (snap positions at open and closed) ---
+        // Small recesses at each end of the arc channel provide tactile snap.
+        for (side = [-1, 1]) {
+            for (pin_y = [total_length/2 - 15, -total_length/2 + 15 + keyboard_travel]) {
+                // Closed-position detent (bottom of arc)
+                translate([side * (bot_shell_width/2 - wall + detent_depth/2),
+                           pin_y,
+                           bot_shell_z])
+                    cube([detent_depth, detent_width, guide_pin_h + wall + 0.2], center = true);
+
+                // Open-position detent (top of arc, offset along the arc chord)
+                translate([side * (bot_shell_width/2 - wall + detent_depth/2),
+                           pin_y - keyboard_travel + 5,
+                           bot_shell_z])
+                    cube([detent_depth, detent_width, guide_pin_h + wall + 0.2], center = true);
+            }
         }
 
         // --- Heltec V4 PCB pocket (recessed mounting area) ---
@@ -148,12 +187,21 @@ module bottom_shell() {
             cube([2, cardkb_width, 1.5], center = true);
     }
 
-    // --- Slide end-stops (prevents top from sliding off) ---
+    // --- Arc channel end-stops (prevents top shell from sliding off) ---
+    // Small walls at each end of the arc guide channels block the guide
+    // pins from leaving the track.
     for (side = [-1, 1]) {
-        translate([side * (bot_shell_width/2 - wall - rail_width/2),
-                   total_length/2 - 3,
+        // Front end-stop
+        translate([side * (bot_shell_width/2 - wall - guide_pin_d/2 - 1),
+                   total_length/2 - 12,
                    bot_shell_z])
-            cube([rail_width + 2, 3, rail_height + wall], center = true);
+            cube([guide_slot_width + 2, 2, guide_pin_h + wall], center = true);
+
+        // Rear end-stop
+        translate([side * (bot_shell_width/2 - wall - guide_pin_d/2 - 1),
+                   -total_length/2 + 12 + keyboard_travel,
+                   bot_shell_z])
+            cube([guide_slot_width + 2, 2, guide_pin_h + wall], center = true);
     }
 }
 

@@ -1,15 +1,15 @@
 # Meshtastic Sliding Phone
 
-A 3D-printable sliding phone enclosure for **Meshtastic** mesh networking devices. Inspired by classic slider phones (Nokia N95, Samsung SGH-D900), this design houses a **Heltec WiFi LoRa 32 V4** board and a **M5Stack CardKB** I²C keyboard in a compact, pocket-friendly form factor with a slide-out keyboard.
+A 3D-printable sliding phone enclosure for **Meshtastic** mesh networking devices. Inspired by the **Sony Xperia** slide phone mechanism, this design houses a **Heltec WiFi LoRa 32 V4** board and a **M5Stack CardKB** I²C keyboard in a compact, pocket-friendly form factor with an arc-sliding keyboard that tilts the screen upward when opened.
 
 ```
     ┌─────────────────────┐
     │  ╔═════════╗        │  ← Speaker grille
     │  ║ 0.96"   ║        │
-    │  ║  OLED   ║        │  ← OLED viewport (built into Heltec V4)
+    │  ║  OLED   ║   ↗    │  ← OLED viewport (tilts up when slid open)
     │  ╚═════════╝        │
     │     [PWR]  [VOL]    │  ← Side buttons
-    ├─────────────────────┤  ← Slide mechanism
+    ├───●─────────────●───┤  ← Arc guide pins (curved slide mechanism)
     │  ┌─┐┌─┐┌─┐┌─┐┌─┐  │
     │  │Q││W││E││R││T│..  │  ← CardKB (revealed when slid open)
     │  └─┘└─┘└─┘└─┘└─┘  │
@@ -22,7 +22,8 @@ A 3D-printable sliding phone enclosure for **Meshtastic** mesh networking device
 
 ## Features
 
-- **Sliding mechanism** with dovetail rails for smooth, snap-free action
+- **Sony Xperia-style arc slider** with curved guide channels — the screen tilts up ~25° when opened for comfortable viewing
+- **Guide pin mechanism** with internal arc channels and snap detent positions
 - **0.96" OLED viewport** aligned with the Heltec V4's built-in 128×64 display
 - **CardKB pocket** — snap-in slot for the M5Stack CardKB I²C keyboard module
 - **LiPo battery** compartment (503450 or similar flat pouch cell) with snap-fit cover
@@ -117,7 +118,7 @@ python3 scripts/generate_stl.py --part top_shell  # Generate one part
 | **Layer Height** | 0.2mm (0.12mm for OLED viewport frame) |
 | **Infill** | 20–25% (100% for battery cover snap tabs) |
 | **Material** | PETG or ASA recommended (PLA acceptable) |
-| **Supports** | Required for rail channels |
+| **Supports** | Required for arc guide channels |
 | **Orientation** | Print shells face-down for best surface finish |
 | **Walls** | 3 perimeters minimum |
 
@@ -129,7 +130,7 @@ python3 scripts/generate_stl.py --part top_shell  # Generate one part
 4. **Wire the CardKB** — run the CardKB Grove/I²C cable through the side access slot and connect to the Heltec V4 (SDA → GPIO 21, SCL → GPIO 22)
 5. **Install the antenna mount** — attach to the top edge of the bottom shell with M2 screws, thread the SMA connector through
 6. **Insert the LiPo battery** — place the flat LiPo cell in the battery compartment and snap the battery cover shut
-7. **Assemble the slide** — align the top shell's dovetail rails with the bottom shell's channels and slide together from the keyboard end
+7. **Assemble the slide** — align the top shell's guide pins with the bottom shell's curved arc channels and slide together from the keyboard end; the mechanism will snap into the closed position
 8. **Flash Meshtastic firmware** — connect via USB-C and use [flasher.meshtastic.org](https://flasher.meshtastic.org); select **Heltec WiFi LoRa 32 V4** as the target device
 
 ## Customization
@@ -140,6 +141,11 @@ All dimensions are parametric. Edit `models/scad/parameters.scad` to adjust:
 - `wall` — shell thickness (increase for durability, decrease for weight)
 - `clearance` — sliding fit tolerance (tune for your printer)
 - `keyboard_travel` — how far the keyboard slides out
+- `arc_radius` — radius of the curved arc path (larger = gentler tilt)
+- `tilt_angle` — maximum tilt angle when fully open (degrees)
+- `guide_pin_d`, `guide_pin_h` — size of guide pins on top shell
+- `guide_slot_width`, `guide_slot_depth` — arc channel dimensions
+- `detent_depth` — snap detent strength (open/closed positions)
 - `corner_radius` — roundness of edges
 - `cardkb_length`, `cardkb_width`, `cardkb_thickness` — CardKB module pocket
 - PCB, battery, display viewport dimensions — match your specific hardware

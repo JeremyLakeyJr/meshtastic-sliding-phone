@@ -5,6 +5,9 @@ Meshtastic Sliding Phone - STL Generator
 Generates printable STL mesh files for all phone components using numpy-stl.
 Run this script to produce STL files without needing OpenSCAD installed.
 
+The sliding mechanism uses a Sony Xperia-style curved arc slider with guide
+pins on the top shell that ride in arc-shaped channels in the bottom shell.
+
 Usage:
     python3 generate_stl.py           # Generate all STL files
     python3 generate_stl.py --part top_shell   # Generate a single part
@@ -13,6 +16,7 @@ Output directory: ../stl/
 """
 
 import argparse
+import math
 import os
 import sys
 import numpy as np
@@ -51,8 +55,18 @@ CARDKB_THICKNESS = 8.0  # 7.5 mm nominal + 0.5 mm tolerance
 
 KEYBOARD_TRAVEL = 35.0
 
-RAIL_W = 4.0
-RAIL_H = 2.0
+# Arc slide mechanism (Sony Xperia-style)
+ARC_RADIUS = 200.0       # Radius of the curved arc path
+TILT_ANGLE = 25.0        # Maximum tilt angle when fully open (degrees)
+GUIDE_PIN_D = 3.0        # Diameter of guide pins on top shell
+GUIDE_PIN_H = 3.0        # Height of guide pins
+GUIDE_SLOT_W = 3.6       # Width of arc channel (guide_pin_d + clearance)
+GUIDE_SLOT_DEPTH = 3.5   # Depth of arc channel in side wall
+
+# Guide pin / arc channel positioning
+PIN_EDGE_INSET = 15.0    # How far guide pins are inset from shell edges (Y-axis)
+PIN_WALL_INSET = 1.0     # Additional inset from inner wall face (X-axis)
+ARC_SLOT_MARGIN = 20.0   # Extra length beyond keyboard_travel for arc slot
 
 SMA_D = 6.5
 USBC_W = 9.5
@@ -149,7 +163,7 @@ def _make_stl(verts, faces):
 # ---------------------------------------------------------------------------
 
 def generate_top_shell():
-    """Generate the top sliding shell mesh."""
+    """Generate the top sliding shell mesh with Sony Xperia-style guide pins."""
     parts = []
     w, l, d = PHONE_WIDTH, PHONE_LENGTH, TOP_Z
 
@@ -171,12 +185,15 @@ def generate_top_shell():
     parts.append(_box_triangles(0, -(l/2 - WALL/2), WALL, iw, WALL, d - WALL))
     parts.append(_box_triangles(0,  (l/2 - WALL/2), WALL, iw, WALL, d - WALL))
 
-    # Slide rails (two dovetail-like rails on bottom)
-    rail_d = RAIL_H
-    rail_l = l - 20
+    # Arc guide pins (Sony Xperia-style — cylindrical pins on underside)
+    # Two pins per side, near front and rear edges
+    pin_r = GUIDE_PIN_D / 2
+    pin_h = GUIDE_PIN_H
     for side in [-1, 1]:
-        rx = side * (w / 2 - WALL - RAIL_W / 2)
-        parts.append(_box_triangles(rx, 0, -rail_d, RAIL_W, rail_l, rail_d))
+        px = side * (w / 2 - WALL - GUIDE_PIN_D / 2 - PIN_WALL_INSET)
+        for pin_y_off in [-1, 1]:
+            py = pin_y_off * (l / 2 - PIN_EDGE_INSET)
+            parts.append(_cylinder_triangles(px, py, -pin_h, pin_r, pin_h, 16))
 
     # PCB mounting posts (4 cylinders, align Heltec V4 under OLED viewport)
     dy_center = l / 2 - DISPLAY_OFFSET_Y - PCB_LENGTH / 2
@@ -191,7 +208,7 @@ def generate_top_shell():
 
 
 def generate_bottom_shell():
-    """Generate the bottom shell mesh with CardKB pocket and PCB mounts."""
+    """Generate the bottom shell mesh with arc guide channels and CardKB pocket."""
     parts = []
     w = PHONE_WIDTH
     l = BOT_LENGTH
@@ -210,11 +227,23 @@ def generate_bottom_shell():
     parts.append(_box_triangles(0, -(l/2 - WALL/2), WALL, iw, WALL, d - WALL))
     parts.append(_box_triangles(0,  (l/2 - WALL/2), WALL, iw, WALL, d - WALL))
 
-    # Rail guides (raised walls for sliding channel)
-    guide_h = RAIL_H + WALL
+    # Raised inner side walls (house the arc guide channels)
+    guide_h = GUIDE_PIN_H + WALL
     for side in [-1, 1]:
         gx = side * (w / 2 - WALL / 2)
         parts.append(_box_triangles(gx, 0, d, WALL, l, guide_h))
+
+    # Arc guide channel representations (simplified as rectangular slots)
+    # In the full OpenSCAD model these are curved arcs; the STL generator
+    # approximates them as straight slots since CSG booleans are not available.
+    arc_slot_l = KEYBOARD_TRAVEL + ARC_SLOT_MARGIN
+    for side in [-1, 1]:
+        sx = side * (w / 2 - WALL - GUIDE_PIN_D / 2 - PIN_WALL_INSET)
+        for pin_y in [l / 2 - PIN_EDGE_INSET,
+                      -l / 2 + PIN_EDGE_INSET + KEYBOARD_TRAVEL]:
+            parts.append(_box_triangles(sx, pin_y - arc_slot_l / 2 + ARC_SLOT_MARGIN / 2,
+                                        d, GUIDE_SLOT_W, arc_slot_l,
+                                        GUIDE_SLOT_DEPTH))
 
     # PCB mounting posts (4 cylinders, Heltec V4)
     pcb_cy = l / 2 - 14 - PCB_LENGTH / 2
@@ -224,10 +253,15 @@ def generate_bottom_shell():
             py = pcb_cy + sy * (PCB_LENGTH / 2 - 2)
             parts.append(_cylinder_triangles(px, py, WALL, 2.5, 6, 16))
 
-    # Slide end-stops
+    # Arc channel end-stops (prevents top shell from sliding off)
     for side in [-1, 1]:
-        sx = side * (w / 2 - WALL - RAIL_W / 2)
-        parts.append(_box_triangles(sx, l / 2 - 1.5, d, RAIL_W + 2, 3, guide_h))
+        sx = side * (w / 2 - WALL - GUIDE_PIN_D / 2 - PIN_WALL_INSET)
+        # Front end-stop
+        parts.append(_box_triangles(sx, l / 2 - PIN_EDGE_INSET + 3, d,
+                                    GUIDE_SLOT_W + 2, 2, guide_h))
+        # Rear end-stop
+        parts.append(_box_triangles(sx, -l / 2 + PIN_EDGE_INSET - 3 + KEYBOARD_TRAVEL, d,
+                                    GUIDE_SLOT_W + 2, 2, guide_h))
 
     # CardKB pocket (rectangular recess for the keyboard module)
     ckb_cy = -l / 2 + WALL + CARDKB_WIDTH / 2 + 3
