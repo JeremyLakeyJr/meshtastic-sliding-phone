@@ -109,7 +109,7 @@ rail_channel_h  = rail_h  + 1.0;                 // 3.5 mm  – 1 mm standoff
 // ============================================================================
 // Neodymium disc-magnet detents
 // ============================================================================
-// Standard part: 5 mm dia × 2 mm thick, N42 grade.
+// Standard part: 10 mm dia × 4 mm thick, N42 grade.
 // Each pocket is sized for a press-fit (0.1 mm under-bore) so magnets are
 // retained without glue.  A shallow retention lip at the pocket entrance
 // (0.2 mm under-bore, 0.5 mm deep) acts as a snap-in retainer that prevents
@@ -120,10 +120,10 @@ rail_channel_h  = rail_h  + 1.0;                 // 3.5 mm  – 1 mm standoff
 //
 // Magnets must NEVER touch – the rail standoff makes this a hard guarantee.
 // ============================================================================
-magnet_d        =  5.0;              // Disc diameter
-magnet_h        =  2.0;             // Disc thickness
-magnet_pocket_d =  magnet_d - 0.1;  // 4.9 mm – press-fit bore
-magnet_pocket_h =  2.5;             // Pocket depth = magnet_h + 0.5 mm recess
+magnet_d        = 10.0;              // Disc diameter
+magnet_h        =  4.0;             // Disc thickness
+magnet_pocket_d =  magnet_d - 0.1;  // 9.9 mm – press-fit bore
+magnet_pocket_h =  4.5;             // Pocket depth = magnet_h + 0.5 mm recess
 
 // Magnet Y positions (centred between the two rails at ±rail_y = ±40 mm)
 magnet_y        = 20.0;  // ±Y from phone centreline

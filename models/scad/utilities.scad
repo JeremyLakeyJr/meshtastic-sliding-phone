@@ -123,8 +123,8 @@ module rail_channel_void(length) {
 // ============================================================================
 // Magnet-pocket module
 // ============================================================================
-// Cylindrical press-fit pocket for one neodymium disc magnet (5 mm × 2 mm).
-// Bore = magnet_d − 0.1 mm (4.9 mm) → press-fit retention without glue.
+// Cylindrical press-fit pocket for one neodymium disc magnet (10 mm × 4 mm).
+// Bore = magnet_d − 0.1 mm (9.9 mm) → press-fit retention without glue.
 //
 // A shallow retention lip at the pocket entrance (0.2 mm narrower, 0.5 mm
 // deep) acts as a snap-in retainer: the magnet is pushed past the lip and
@@ -139,7 +139,7 @@ module rail_channel_void(length) {
 // The extra 0.1 mm on cylinder heights ensures clean boolean cuts.
 // ============================================================================
 module magnet_pocket() {
-    retention_d = magnet_pocket_d - 0.2;  // 4.7 mm – narrow lip at entrance
+    retention_d = magnet_pocket_d - 0.2;  // 9.7 mm – narrow lip at entrance
     retention_h = 0.5;                    // depth of retention lip zone
 
     // Retention lip (slightly under-bore at the pocket mouth)
