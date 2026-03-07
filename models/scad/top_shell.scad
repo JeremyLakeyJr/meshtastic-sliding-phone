@@ -2,9 +2,11 @@
 // Meshtastic Sliding Phone – Top Shell (Display / PCB Face)
 // ============================================================================
 // Upper half of the phone body.  Snap-fits onto the bottom shell.
-// Houses the Heltec WiFi LoRa 32 V4 PCB below the OLED viewport, the
-// speaker grille, front camera pinhole, notification LED slot, and side
-// buttons (power + volume rocker).
+// Houses the Heltec WiFi LoRa 32 V4 PCB (51.7 × 25.4 mm, ESP32-S3 + SX1262)
+// below the OLED viewport.  The viewport is sized to accept an optional
+// capacitive touch-overlay panel (the V4 exposes 7 touch-sensor pins).
+// Also features a speaker grille, front camera pinhole, notification LED
+// slot, and side buttons (power + volume rocker).
 //
 // Print orientation : display face DOWN – viewport and button recesses print
 //                     without supports.

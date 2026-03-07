@@ -49,11 +49,13 @@ module grille_pattern(cols, rows, slot_w, slot_h, spacing, slot_r) {
 }
 
 // ============================================================================
-// Horizontal slider – rail modules
+// Shortways (X-axis) slider – rail modules
 // ============================================================================
 // The keyboard tray has two parallel rectangular runners on its top face.
 // These runners slide inside matching channels in the bottom-shell underside,
-// constraining lateral (X-axis) drift and keeping the slide straight.
+// constraining front/back (Y-axis) drift and keeping the slide straight.
+// Rails run along the X axis (the 74 mm short side) and are positioned at
+// Y = ±rail_y from the phone centreline (near the top and bottom long edges).
 //
 // The channel is intentionally 1 mm deeper than the runner is tall, creating
 // a 1 mm air-gap standoff between the tray top face and the shell underside.
@@ -62,15 +64,15 @@ module grille_pattern(cols, rows, slot_w, slot_h, spacing, slot_r) {
 // ============================================================================
 
 // A single rectangular runner – placed on the tray top face, protruding up.
-//   length = Y-axis extent of the runner
+//   length = X-axis extent of the runner
 module rail_runner(length) {
-    cube([rail_w, length, rail_h]);
+    cube([length, rail_w, rail_h]);
 }
 
 // The void to subtract from the bot-shell underside to form one rail channel.
-//   length = Y-axis extent (pass phone_length; +2 extra mm for open ends)
+//   length = X-axis extent (pass phone_width; +2 extra mm for open ends)
 module rail_channel_void(length) {
-    cube([rail_channel_w, length + 2, rail_channel_h]);
+    cube([length + 2, rail_channel_w, rail_channel_h]);
 }
 
 // ============================================================================

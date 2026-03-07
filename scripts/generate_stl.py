@@ -5,9 +5,12 @@ Meshtastic Sliding Phone - STL Generator
 Generates printable STL mesh files for all phone components using numpy-stl.
 Run this script to produce STL files without needing OpenSCAD installed.
 
-Mechanism: horizontal magnetic-detent slider.
-  • Two parallel rectangular rail runners on the keyboard-tray top face
-    slide inside matching channels in the bottom-shell underside.
+Mechanism: shortways (X-axis) magnetic-detent slider.
+  • Two parallel rectangular rail runners on the keyboard-tray top face run
+    along the X axis (the 74 mm short side) and slide inside matching channels
+    in the bottom-shell underside, positioned at Y = ±rail_y (±40 mm).
+  • Holding the phone landscape (120 mm wide × 74 mm tall), the keyboard
+    slides downward — exactly like a Nokia N900.
   • Neodymium disc magnets recessed in both faces snap the tray into the
     closed and open positions and provide Z-axis retention during sliding.
 
@@ -36,15 +39,15 @@ WALL             =   2.0
 CLEARANCE        =   0.3
 CORNER_R         =   4.0
 
-# Display (Heltec V4 OLED 0.96″)
-DISPLAY_W        =  21.0
-DISPLAY_H        =  11.0
+# Display (Heltec V4 OLED 0.96″; viewport sized for optional touch overlay)
+DISPLAY_W        =  23.0   # 21 mm OLED + 2 mm touch-overlay margin
+DISPLAY_H        =  13.0   # 11 mm OLED + 2 mm touch-overlay margin
 DISPLAY_OFFSET_Y =  12.0
 DISPLAY_DEPTH    =   2.0
 
-# Heltec WiFi LoRa 32 V4 PCB
-PCB_LENGTH       =  55.0
-PCB_WIDTH        =  27.0
+# Heltec WiFi LoRa 32 V4 PCB (ESP32-S3 + SX1262; actual 51.7 × 25.4 mm)
+PCB_LENGTH       =  52.0   # rounded from 51.7 mm
+PCB_WIDTH        =  26.0   # rounded from 25.4 mm
 
 # LiPo battery (slim pouch, ~50×40×5 mm nominal)
 LIPO_THICKNESS   =   6.0
@@ -63,10 +66,10 @@ TOP_Z  =  10.0   # top shell
 BOT_Z  =   9.0   # bottom shell
 TRAY_Z =   8.0   # keyboard tray
 
-# --- Rail system ---
+# --- Rail system (runners run along X axis; positioned at Y = ±RAIL_Y) ---
 RAIL_W          =  4.0
 RAIL_H          =  2.5
-RAIL_X          = 32.0
+RAIL_Y          = 40.0    # ±Y from phone centreline to runner centre
 RAIL_CHANNEL_W  = RAIL_W + 2 * CLEARANCE          # 4.6 mm
 RAIL_CHANNEL_H  = RAIL_H + 1.0                    # 3.5 mm
 
@@ -75,16 +78,16 @@ MAGNET_D        =  5.0
 MAGNET_H        =  2.0
 MAGNET_POCKET_D =  5.2
 MAGNET_POCKET_H =  2.5
-MAGNET_X        = 16.0
-DETENT_Y_OFFSET = 35.0
+# Magnets at Y = ±MAGNET_Y, X = DETENT_X_OFFSET (tray frame)
+MAGNET_Y        = 20.0
+DETENT_X_OFFSET = 28.0
 
 # --- End-stop tab dimensions (keyboard tray open-position mechanical stop) ---
-# The tab's leading (−Y) face hits the phone body's −Y wall, stopping the
-# tray TAB_STOP_MARGIN mm before the theoretical maximum travel so the tray
-# doesn't slam against the hard stop.
-TAB_W_EXTRA     =  2.0   # mm wider than the channel (1 mm per side) – cannot pass through opening
-TAB_DEPTH       =  3.0   # mm Y extent – provides adequate bearing surface
-TAB_HEIGHT_EXT  =  1.5   # mm extra height above rail_h – ensures positive engagement
+# The tab's leading (−X) face hits the phone body's −X wall, stopping the
+# tray TAB_STOP_MARGIN mm before the theoretical maximum travel.
+TAB_W_EXTRA     =  2.0   # mm wider than the channel (1 mm per Y side)
+TAB_DEPTH       =  3.0   # mm X extent – provides adequate bearing surface
+TAB_HEIGHT_EXT  =  1.5   # mm extra height above rail_h
 TAB_STOP_MARGIN =  2.0   # mm safety margin before maximum travel
 
 # --- Ports ---
@@ -185,6 +188,7 @@ def generate_top_shell():
     parts.append(_box_triangles(0,  (l / 2 - WALL / 2), WALL, iw, WALL, d - WALL))
 
     # PCB mounting posts (4 cylinders, Heltec V4 under OLED viewport)
+    # V4 actual PCB: 51.7 mm (Y-length) × 25.4 mm (X-width) → PCB_LENGTH × PCB_WIDTH
     dy = l / 2 - DISPLAY_OFFSET_Y - PCB_LENGTH / 2
     for sx in [-1, 1]:
         for sy in [-1, 1]:
@@ -197,7 +201,7 @@ def generate_top_shell():
 
 
 def generate_bottom_shell():
-    """Bottom half of the phone body: battery, ports, rail channels, magnet pockets."""
+    """Bottom half of the phone body: battery, ports, X-axis rail channels, magnet pockets."""
     parts = []
     w, l, d = PHONE_WIDTH, PHONE_LENGTH, BOT_Z
 
@@ -212,19 +216,19 @@ def generate_bottom_shell():
     parts.append(_box_triangles(0, -(l / 2 - WALL / 2), WALL, iw, WALL, d - WALL))
     parts.append(_box_triangles(0,  (l / 2 - WALL / 2), WALL, iw, WALL, d - WALL))
 
-    # Rail channel representations (rectangular slots on underside, simplified)
+    # Rail channel representations (X-axis slots on underside, at Y = ±RAIL_Y)
     for side in [-1, 1]:
-        cx = side * RAIL_X
-        parts.append(_box_triangles(cx, 0, 0, RAIL_CHANNEL_W, l, RAIL_CHANNEL_H))
+        cy = side * RAIL_Y
+        parts.append(_box_triangles(0, cy, 0, w, RAIL_CHANNEL_W, RAIL_CHANNEL_H))
 
-    # Magnet pocket representations (cylinders on underside, simplified)
+    # Magnet pocket representations (cylinders on underside)
     for side in [-1, 1]:
-        mx = side * MAGNET_X
-        # Closed-position pocket
-        parts.append(_cylinder_triangles(mx,  DETENT_Y_OFFSET,             0,
+        my = side * MAGNET_Y
+        # Closed-position pocket (body X = +DETENT_X_OFFSET)
+        parts.append(_cylinder_triangles( DETENT_X_OFFSET,             my, 0,
                                          MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 12))
-        # Open-position pocket
-        parts.append(_cylinder_triangles(mx,  DETENT_Y_OFFSET - KEYBOARD_TRAVEL, 0,
+        # Open-position pocket (body X = DETENT_X_OFFSET - KEYBOARD_TRAVEL)
+        parts.append(_cylinder_triangles( DETENT_X_OFFSET - KEYBOARD_TRAVEL, my, 0,
                                          MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 12))
 
     # Corner screw posts (join to top shell)
@@ -239,7 +243,7 @@ def generate_bottom_shell():
 
 
 def generate_keyboard_tray():
-    """Sliding keyboard tray: CardKB pocket, rail runners, magnet pockets."""
+    """Sliding keyboard tray: CardKB pocket, X-axis rail runners, magnet pockets."""
     parts = []
     w, l, d = PHONE_WIDTH, PHONE_LENGTH, TRAY_Z
 
@@ -254,45 +258,43 @@ def generate_keyboard_tray():
     parts.append(_box_triangles(0, -(l / 2 - WALL / 2), WALL, iw, WALL, d - WALL))
     parts.append(_box_triangles(0,  (l / 2 - WALL / 2), WALL, iw, WALL, d - WALL))
 
-    # Rail runners (two rectangular bars on top face)
+    # Rail runners (two rectangular bars on top face running along X axis)
+    # Positioned at Y = +-RAIL_Y (near top/bottom long edges)
     for side in [-1, 1]:
-        cx = side * RAIL_X
-        parts.append(_box_triangles(cx, 0, d, RAIL_W, l, RAIL_H))
+        cy = side * RAIL_Y
+        parts.append(_box_triangles(0, cy, d, w, RAIL_W, RAIL_H))
 
-    # End-stop tabs (open-position stops)
-    # The tab's leading (−Y) face contacts the phone body −Y wall at
-    # travel = KEYBOARD_TRAVEL − TAB_STOP_MARGIN (40 mm), providing a
-    # 2 mm safety margin so the tray decelerates before the hard stop.
-    # _box_triangles is centred on (cx, cy), so tab centre is offset by
-    # TAB_DEPTH / 2 from the leading face position.
-    tab_lead_y = -l / 2 + KEYBOARD_TRAVEL - TAB_STOP_MARGIN
-    tab_cy     = tab_lead_y + TAB_DEPTH / 2
+    # End-stop tabs (open-position stops on -X end of runners)
+    # Tab leading (-X) face contacts body -X wall at travel = KEYBOARD_TRAVEL - TAB_STOP_MARGIN
+    # _box_triangles is centred, so tab centre is offset by TAB_DEPTH / 2 from leading face.
+    tab_lead_x = -w / 2 + KEYBOARD_TRAVEL - TAB_STOP_MARGIN
+    tab_cx     = tab_lead_x + TAB_DEPTH / 2
     for side in [-1, 1]:
-        cx = side * RAIL_X
-        parts.append(_box_triangles(cx, tab_cy, d,
-                                    RAIL_CHANNEL_W + TAB_W_EXTRA,
+        cy = side * RAIL_Y
+        parts.append(_box_triangles(tab_cx, cy, d,
                                     TAB_DEPTH,
+                                    RAIL_CHANNEL_W + TAB_W_EXTRA,
                                     RAIL_H + TAB_HEIGHT_EXT))
 
     # CardKB pocket representation (raised walls around pocket area)
-    ckb_cy = -l / 2 + WALL + CARDKB_WIDTH / 2
-    ckb_w  = CARDKB_LENGTH + 2 * CLEARANCE
-    ckb_l  = CARDKB_WIDTH  + 2 * CLEARANCE
-    parts.append(_box_triangles(-(ckb_w / 2 + WALL / 2), ckb_cy, WALL,
-                                WALL, ckb_l, CARDKB_THICKNESS))
-    parts.append(_box_triangles( (ckb_w / 2 + WALL / 2), ckb_cy, WALL,
-                                WALL, ckb_l, CARDKB_THICKNESS))
+    # CardKB long axis (59 mm) along Y; short axis (28 mm) along X (slide direction)
+    ckb_cx = -w / 2 + WALL + CARDKB_WIDTH / 2
+    ckb_w  = CARDKB_WIDTH  + 2 * CLEARANCE
+    ckb_l  = CARDKB_LENGTH + 2 * CLEARANCE
+    parts.append(_box_triangles(ckb_cx, -(ckb_l / 2 + WALL / 2), WALL,
+                                ckb_w, WALL, CARDKB_THICKNESS))
+    parts.append(_box_triangles(ckb_cx,  (ckb_l / 2 + WALL / 2), WALL,
+                                ckb_w, WALL, CARDKB_THICKNESS))
 
-    # Magnet pockets on top face (cylinders, simplified representation)
+    # Magnet pockets on top face (cylinders, at X = +DETENT_X_OFFSET, Y = +-MAGNET_Y)
     for side in [-1, 1]:
-        mx = side * MAGNET_X
-        parts.append(_cylinder_triangles(mx, DETENT_Y_OFFSET,
+        my = side * MAGNET_Y
+        parts.append(_cylinder_triangles(DETENT_X_OFFSET, my,
                                          d - MAGNET_POCKET_H,
                                          MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 12))
 
     verts, faces = _combine_meshes(parts)
     return _make_stl(verts, faces)
-
 
 def generate_battery_cover():
     """Snap-fit LiPo battery door."""
