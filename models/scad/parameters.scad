@@ -28,8 +28,9 @@ tray_z          =   8;   // Keyboard tray – CardKB pocket, rail runners, magne
 phone_thickness = top_shell_z + bot_shell_z + tray_z;   // 27 mm
 
 // --- Wall thickness and tolerances ---
-wall            = 2.0;   // General wall / shell thickness
-clearance       = 0.3;   // Sliding-fit clearance per side
+wall_thickness  = 2.2;   // Normalised wall thickness for all enclosure shells
+wall            = wall_thickness;   // Backwards-compatible alias
+clearance       = 0.3;   // General sliding-fit clearance per side (non-rail)
 corner_radius   = 4.0;   // Rounded corner radius
 
 // --- Display viewport (Heltec V4 built-in 0.96″ OLED, 128×64) ---
@@ -61,43 +62,68 @@ cardkb_thickness =  7;   // Height (Z)
 keyboard_travel  = 42;   // mm; fully exposes CardKB (≥ cardkb_width + 14 mm margin)
 
 // ============================================================================
-// Parallel top/bottom-rail system
+// Parallel captured-lip rail system (T-slot)
 // ============================================================================
-// Two rectangular-section runners on the keyboard-tray top face protrude
-// upward into matching channels cut into the bottom-shell underside.
+// Two T-shaped runners on the keyboard-tray top face protrude upward into
+// matching T-slot channels cut into the bottom-shell underside.
 // The runners run along the X axis (the 74 mm SHORT side of the phone),
 // positioned at Y = ±rail_y from the phone centreline (top and bottom edges).
-// The runner width (Y) constrains front/back drift; the channel depth is
-// intentionally greater than the runner height so the runners do NOT touch
-// the channel ceiling – this creates a 1 mm air gap (standoff) between the
-// tray top face and the shell underside, giving low-friction sliding.
+//
+// Each runner has a narrow stem and a wider lip cap at the top.  The channel
+// has a matching T-slot profile: a narrow upper section for the stem and a
+// wider lower section for the lip.  The lip captures the runner vertically so
+// the keyboard tray cannot tilt away from the phone body.
+//
+// The stem void is intentionally deeper than the runner is tall so the runners
+// do NOT touch the channel ceiling – this creates a 1 mm air-gap standoff
+// between the tray top face and the shell underside, giving low-friction
+// sliding.
 //
 //   Standoff = rail_channel_h − rail_h = 3.5 − 2.5 = 1.0 mm
+//
+// The stem void ENDS FLUSH with the −X face of the bottom shell; this leaves
+// shell material at Y positions outside the stem void as natural stop walls
+// that intercept the keyboard-tray over-travel tabs at maximum slide.
+//
+// A rail_entry_chamfer flares the lip void at the +X (insertion) end so the
+// runner lip slides in easily.
 // ============================================================================
-rail_w          =  4.0;  // Runner width  (Y direction)
-rail_h          =  2.5;  // Runner height (Z, protrudes above tray top face)
+rail_w          =  4.0;  // Runner stem width   (Y direction)
+rail_h          =  2.5;  // Runner height       (Z, protrudes above tray top face)
 rail_y          = 40.0;  // ±Y distance from phone centreline to runner centre
 
-// Channel in bot-shell underside (slightly wider + intentionally deeper)
-rail_channel_w  = rail_w + 2 * clearance;   // 4.6 mm  – snug sliding fit
-rail_channel_h  = rail_h + 1.0;             // 3.5 mm  – 1 mm standoff
+// Captured-lip geometry
+rail_lip_h      =  1.0;  // Height of T-rail lip cap (top portion of runner)
+rail_lip_w      =  1.5;  // Width of lip overhang each side beyond stem (Y)
+
+// Printing-tolerance clearances for the rail
+rail_clearance  =  0.35; // Per-side clearance between runner and channel
+
+// Entry chamfer at the +X insertion end of the channel
+rail_entry_chamfer = 0.6;
+
+// Channel in bot-shell underside
+rail_channel_w  = rail_w  + 2 * rail_clearance;  // 4.7 mm  – stem void width
+rail_channel_h  = rail_h  + 1.0;                 // 3.5 mm  – 1 mm standoff
 
 // ============================================================================
 // Neodymium disc-magnet detents
 // ============================================================================
 // Standard part: 5 mm dia × 2 mm thick, N42 grade.
-// Each pocket is sized for a light press-fit (0.1 mm under-bore).
-// Both opposing pockets are 0.5 mm deeper than the magnet so the magnet sits
-// 0.5 mm below the face.  Guaranteed gap between opposing faces:
+// Each pocket is sized for a press-fit (0.1 mm under-bore) so magnets are
+// retained without glue.  A shallow retention lip at the pocket entrance
+// (0.2 mm under-bore, 0.5 mm deep) acts as a snap-in retainer that prevents
+// the magnet from backing out.  Both opposing pockets are 0.5 mm deeper than
+// the magnet so the magnet sits 0.5 mm below the face.  Guaranteed gap:
 //
 //   gap = standoff + 2 × recess = 1.0 + 0.5 + 0.5 = 2.0 mm  ✓
 //
 // Magnets must NEVER touch – the rail standoff makes this a hard guarantee.
 // ============================================================================
-magnet_d        =  5.0;  // Disc diameter
-magnet_h        =  2.0;  // Disc thickness
-magnet_pocket_d =  5.2;  // Pocket bore  (light press-fit)
-magnet_pocket_h =  2.5;  // Pocket depth = magnet_h + 0.5 mm recess
+magnet_d        =  5.0;              // Disc diameter
+magnet_h        =  2.0;             // Disc thickness
+magnet_pocket_d =  magnet_d - 0.1;  // 4.9 mm – press-fit bore
+magnet_pocket_h =  2.5;             // Pocket depth = magnet_h + 0.5 mm recess
 
 // Magnet Y positions (centred between the two rails at ±rail_y = ±40 mm)
 magnet_y        = 20.0;  // ±Y from phone centreline
@@ -110,6 +136,14 @@ magnet_y        = 20.0;  // ±Y from phone centreline
 // • When travel = 0  (closed): tray magnets align with body closed-snap pockets. ✓
 // • When travel = 42 (open):   tray magnets align with body open-snap pockets.  ✓
 detent_x_offset = 28.0;  // mm from body centre toward +X (right edge)
+
+// --- Keyboard-tray over-travel stop tabs ---
+// Small tabs on each runner that are wider than the channel and contact the
+// shell's natural stop walls at full slide travel.
+tab_w_extra     =  2.0;  // Extra Y width beyond rail_channel_w (1 mm per side)
+tab_depth       =  3.0;  // Tab X dimension (contact bearing length)
+tab_z_extra     =  1.5;  // Extra Z height above rail_h
+tab_stop_margin =  2.0;  // Travel margin before hard stop (mm before keyboard_travel)
 
 // --- Antenna (SMA connector) ---
 sma_diameter    =  6.5;
