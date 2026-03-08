@@ -49,91 +49,101 @@ module grille_pattern(cols, rows, slot_w, slot_h, spacing, slot_r) {
 }
 
 // ============================================================================
-// Shortways (X-axis) slider – captured-lip (T-slot) rail modules
+// Shortways (X-axis) slider – captured dovetail rail modules
 // ============================================================================
-// The keyboard tray has two parallel T-shaped runners on its top face.  Each
-// runner has a narrow rectangular stem and a wider lip cap at the top.  The
-// runners slide inside matching T-slot channels in the top-shell underside,
-// which constrains front/back (Y-axis) drift AND prevents vertical (Z-axis)
-// lift so the tray cannot separate from the body mid-slide.
+// The keyboard tray has two parallel dovetail runners on its top face.
+// Each runner has a narrow base (attached to tray) and a wider cap (free end).
+// The runners slide inside matching dovetail grooves in the top-shell underside,
+// constraining front/back (Y-axis) drift AND preventing vertical (Z-axis)
+// separation (the wide cap cannot exit through the narrow groove opening).
 //
-// Rail geometry (cross-section, Y–Z plane):
+// Runner cross-section (Y–Z plane):
 //
-//   ┌─────────────────┐  ← lip cap  (rail_w + 2×rail_lip_w wide, rail_lip_h tall)
-//   └───┐       ┌─────┘
-//       │ stem  │           (rail_w wide, rail_h − rail_lip_h tall)
-//       └───────┘
+//   ┌──────────────────────┐  ← cap  (rail_base_width = 4.0 mm, free end)
+//    \                    /
+//     \                  /   ← angled sides (~65° from horizontal, FDM printable)
+//      └────────────────┘    ← base (rail_top_width  = 1.2 mm, tray face)
 //
-//   Parameters (per spec):
-//     rail_width   = 3 mm   (rail_w)
-//     rail_height  = 2 mm   (rail_h)
-//     clearance    = 0.35 mm (rail_clearance per side)
+// Groove in top shell (Y–Z plane, opens at Z = 0 / shell face):
 //
-// Channel T-slot (wider at the base where the lip sits, narrower above):
+//   ┌──┐                ┌──┐  ← shell face (solid; groove opening = 1.9 mm wide)
+//    \  └──────────────┘  /   ← tapered walls (Z = 0 … rail_height)
+//     └──────────────────┘    ← inner zone   (4.7 mm wide; Z = rail_height … groove_depth)
 //
-//   ┌─────┐                ┌─────┐  ← shell body (solid)
-//   │     └────────────────┘     │  ← stem void (rail_channel_w = 3.7 mm wide)
-//   └─────────────────────────────┘  ← lip void
+// Capture: runner cap (4 mm) > groove opening (1.9 mm) → tray captured  ✓
+// Passive typing angle ≈ atan(channel_standoff / rail_engagement) ≈ 3° at full ext.
 //
-// Standoff = rail_channel_h − rail_h = 4.5 − 2.0 = 2.5 mm
-// (generous clearance accommodates the slight passive typing angle at
-//  full extension; see typing_angle in parameters.scad)
+// Assembly:
+//   1. Align runners with grooves at the +X entry end.
+//   2. Slide tray −X.  Entry chamfer guides cap into inner zone.
+//   3. Press-fit magnets.  Runner −X tip stop-cutout clears stop blocks.
 //
-// Entry chamfer (+X end): flares the lip void for smooth runner insertion.
-// Snap ramp     (−X end): a shallow floor crest in the last snap_ramp_x mm
-//                         makes the tray self-finish into the open position.
+// Parameters:
+//   rail_base_width = 4.0 mm (cap)
+//   rail_top_width  = 1.2 mm (base)
+//   rail_height     = 3.0 mm
+//   rail_clearance  = 0.35 mm (per side)
+//   channel_standoff = 2.0 mm (extra depth for passive tilt)
 // ============================================================================
 
-// A single T-shaped runner – placed on the tray top face, protruding up.
-//   length = X-axis extent of the runner
+// A single dovetail runner – placed on the tray top face, protruding upward.
+//   length = X-axis extent of the runner (typically phone_width = 95 mm)
+//   Origin: X = 0, Y centred at 0, Z = 0 at tray face.
 module rail_runner(length) {
-    // Stem (lower portion – rail_w wide, rail_h − rail_lip_h tall)
-    cube([length, rail_w, rail_h - rail_lip_h]);
-    // Lip cap (wider, at the top of the stem)
-    translate([0, -rail_lip_w, rail_h - rail_lip_h])
-        cube([length, rail_w + 2 * rail_lip_w, rail_lip_h]);
+    // Narrow base at Z = 0 (tray-face attachment)
+    // Wide cap at Z = rail_height (free end, captured in groove)
+    hull() {
+        translate([0, -rail_top_width / 2, 0])
+            cube([length, rail_top_width, 0.01]);
+        translate([0, -rail_base_width / 2, rail_height])
+            cube([length, rail_base_width, 0.01]);
+    }
 }
 
-// The T-slot void subtracted from the top-shell underside to form one channel.
+// The dovetail groove void subtracted from the top-shell underside.
 //   length = X-axis extent (pass phone_width)
 //
-// Lip void  : extends 1 mm past both X ends for clean open edges.
-// Stem void : full X extent (lip-void-length), enabling the runner to slide
-//             freely along the entire channel.
-// Entry chamfer: flares the lip void at the +X end for smooth insertion.
-// Snap ramp    : a small floor crest in the last snap_ramp_x mm of travel
-//               makes the tray "snap" into the fully-open position.
+// Profile: narrow opening at Z = 0 (shell face), tapered to inner width at
+//          Z = rail_height, then a straight channel_standoff zone beyond that.
+// Entry chamfer at +X end flares the opening for smooth runner insertion.
 module rail_channel_void(length) {
-    ch = rail_entry_chamfer;
+    groove_opening = rail_top_width  + 2 * rail_clearance;  // 1.9 mm
+    groove_inner   = rail_base_width + 2 * rail_clearance;  // 4.7 mm
+    groove_depth   = rail_height + channel_standoff;        // 5.0 mm
+    ch             = rail_entry_chamfer;                    // 1.0 mm
 
-    // Lip void (Z = 0 … rail_lip_h) – wide, open at both ends
-    translate([0, -rail_lip_w, 0])
-        cube([length + 2, rail_channel_w + 2 * rail_lip_w, rail_lip_h]);
-
-    // Stem void (Z = rail_lip_h … rail_channel_h)
-    // Split into snap-ramp section (near −X) and plain section.
-    ramp_start_x = 1 + snap_ramp_x;  // X = 6 mm from void origin
-    translate([ramp_start_x, 0, rail_lip_h])
-        cube([length + 2 - ramp_start_x, rail_channel_w,
-              rail_channel_h - rail_lip_h]);
-
-    // Snap-ramp section: gentle floor crest for the "snap" feel at open end
+    // ── Tapered section (Z = 0 … rail_height): narrow opening → inner width
     hull() {
-        // Near −X end: reduced void height (crest of ramp)
-        translate([1, 0, rail_lip_h])
-            cube([0.01, rail_channel_w, rail_channel_h - rail_lip_h - snap_ramp_z]);
-        // At ramp_start_x: full void height
-        translate([ramp_start_x, 0, rail_lip_h])
-            cube([0.01, rail_channel_w, rail_channel_h - rail_lip_h]);
+        translate([0, -groove_opening / 2, 0])
+            cube([length + 2, groove_opening, 0.01]);
+        translate([0, -groove_inner / 2, rail_height])
+            cube([length + 2, groove_inner, 0.01]);
     }
 
-    // Entry chamfer on the lip void at the +X insertion end
+    // ── Straight standoff zone (Z = rail_height … groove_depth)
+    translate([0, -groove_inner / 2, rail_height])
+        cube([length + 2, groove_inner, channel_standoff]);
+
+    // ── Entry chamfer at +X insertion end (flares to groove_inner width)
     hull() {
-        translate([length + 2 - ch, -rail_lip_w, 0])
-            cube([0.01, rail_channel_w + 2 * rail_lip_w, rail_lip_h]);
-        translate([length + 2, -rail_lip_w - ch, 0])
-            cube([0.01, rail_channel_w + 2 * (rail_lip_w + ch), rail_lip_h + ch]);
+        // At the +X face: full inner width, full depth
+        translate([length + 1, -groove_inner / 2, 0])
+            cube([0.01, groove_inner, groove_depth]);
+        // Chamfer distance back: tapered to open wider
+        translate([length + 2 - ch, -(groove_inner / 2 + ch), 0])
+            cube([0.01, groove_inner + 2 * ch, groove_depth + ch]);
     }
+}
+
+// ============================================================================
+// Wire routing groove module
+// ============================================================================
+// A shallow channel alongside the rail system for the keyboard flex cable.
+// Prevents the cable from being pinched by the sliding tray.
+//   length = X-axis extent; place adjacent to a rail on the tray top face.
+module wire_routing_groove(length) {
+    translate([0, 0, -0.1])
+        cube([length, wire_tunnel_width, wire_tunnel_height + 0.1]);
 }
 
 // ============================================================================
@@ -150,8 +160,6 @@ module rail_channel_void(length) {
 // locking the magnet in place.
 //
 // Pocket depth = magnet_depth = 4.2 mm, leaving the magnet 0.2 mm recessed.
-// Air gap between opposing faces (body + tray) = 2 × 0.2 mm + 2.5 mm standoff
-//                                              = 2.9 mm  ✓  magnets never touch.
 // ============================================================================
 module magnet_pocket() {
     retention_lip_d = magnet_diameter - 2 * magnet_lip;  // 9.3 mm – snap-fit entrance

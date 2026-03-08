@@ -9,38 +9,38 @@
 //   • Full exterior shell (95 × 120 × 19 mm, rounded corners)
 //   • Display / OLED viewport cutout with countersink on the top face
 //   • Electronics cavity accessible from the bottom (open rail face)
-//   • Dedicated battery recess inside the cavity (battery cover integrated)
-//   • Two T-slot rail CHANNELS on the bottom face for the keyboard tray
-//   • Rail-boss ribs at Y = ±rail_y provide solid material for channels
-//   • Stop blocks inside the rail channels (prevent accidental tray removal)
+//   • Dedicated battery pocket (71 × 51 × 9 mm) inside the cavity
+//     integrated battery retention; no separate cover needed
+//   • Two dovetail rail GROOVES on the bottom face for the keyboard tray
+//     – Groove: narrow opening (1.9 mm), tapered to 4.7 mm at rail_height,
+//       then channel_standoff straight zone → passive ~3° typing angle
+//   • Stop blocks inside the rail grooves prevent accidental tray removal
 //   • Magnet pockets for closed-position and open-position snap detents
 //     (10 mm × 4 mm neodymium disc magnets, 10.3 mm bore × 4.2 mm deep)
-//   • PCB mounting posts (Heltec V4) positioned below the viewport
-//   • Internal reinforcement ribs on large flat surfaces (reduce flex)
-//   • USB-C, SMA, microphone, and speaker holes on appropriate edges
+//   • PCB mounting standoffs (Heltec V3/V4, 4 posts, M2 screws)
+//   • Internal reinforcement ribs (rib_width=2 mm, rib_height=6 mm)
+//   • Wire routing channel (2 × 6 mm) from battery to Heltec JST connector
+//   • Wire routing groove alongside +Y rail for keyboard flex cable
+//   • USB-C, SMA antenna, microphone, and speaker holes on edges
 //
 // STOP BLOCK ASSEMBLY
 // ───────────────────
-//   Stop blocks are 2 mm tall protrusions on the channel floor at
-//   body X ≈ −15.5 mm from centre.  The runner -X tip has a matching
-//   stop_cutout (2.5 mm deep notch) enabling assembly from the +X end:
-//   1. Align runner with channel entry at +X body face.
-//   2. Slide tray in −X direction.  Runner -X tip cutout clears the
-//      stop block at ~63 mm insertion depth.
-//   3. Continue sliding to closed position — done.
-//   When tray is opened, the solid runner trailing-face hits the stop
-//   block at travel = slider_travel − 2 = 63 mm, preventing over-travel.
+//   Stop blocks (2 mm tall, 2 mm deep) sit at the groove entrance face (Z = 0)
+//   at body X ≈ −15.5 mm.  The runner −X tip has a stop_cutout notch (2.5 mm)
+//   that allows the runner tip to clear the stop block during initial assembly.
+//   After assembly the solid runner body prevents over-travel on opening.
 //
-// TYPING ANGLE
-// ─────────────
-//   A passive 3° typing angle (see typing_angle in parameters.scad) is
-//   produced when the keyboard is fully extended: the 2.5 mm T-slot
-//   standoff allows the tray to rest at a natural incline.  No angled
-//   rails are needed — standard straight T-slot channels suffice.
+// PASSIVE TYPING ANGLE
+// ─────────────────────
+//   channel_standoff = 2 mm of extra groove depth beyond rail_height = 3 mm.
+//   At full extension (30 mm rail engagement, 65 mm keyboard arm):
+//     passive tilt ≈ atan(2/30) ≈ 3.8° ≈ 3° under gravity/hand pressure.
 //
 // PRINT ORIENTATION
 //   Display face DOWN — viewport and button recesses print without supports.
-//   Minimum wall 2.2 mm; no overhang > 50°; chamfered rail entry.
+//   Dovetail grooves face UP during print; groove walls at ~65° from horizontal
+//   are well within FDM limits (< 45° overhang from horizontal).
+//   Minimum wall 2.2 mm; entry chamfer guides tray insertion.
 //
 // Print settings: 0.2 mm layer height, 25 % infill, 3 perimeters
 // ============================================================================
@@ -49,15 +49,18 @@ include <parameters.scad>
 use <utilities.scad>
 
 module top_shell() {
-    // Reinforcement rib thickness and interior span
-    rib_t  = wall_thickness / 2;                    // 1.1 mm
+    // Reinforcement rib dimensions (from parameters)
+    rib_t  = rib_width;                             // 2.0 mm
     rib_h  = body_z - wall_thickness;               // floor-to-ceiling span inside cavity
     rib_iw = phone_width  - 2 * wall_thickness;     // interior width  (X)
     rib_il = phone_length - 2 * wall_thickness;     // interior length (Y)
 
-    // Stop block +X-face position in body frame.
-    // stop_block_pos_x = -(slider_travel - tab_stop_margin - phone_width/2) = -15.5 mm
-    stop_block_pos_x = -(slider_travel - tab_stop_margin - phone_width/2);
+    // Stop block +X-face position in body frame:
+    //   stop_block_pos_x = -(slider_travel - tab_stop_margin - phone_width/2) = -15.5 mm
+    stop_block_pos_x = -(slider_travel - tab_stop_margin - phone_width / 2);
+
+    // Groove opening width (for stop block sizing)
+    groove_opening_w = rail_top_width + 2 * rail_clearance;  // 1.9 mm
 
     union() {
         difference() {
@@ -65,8 +68,9 @@ module top_shell() {
                 // ── Outer shell ─────────────────────────────────────────────
                 rounded_box(phone_width, phone_length, body_z, corner_radius);
 
-                // ── PCB mounting posts ───────────────────────────────────────
-                // Four M2 screw posts for Heltec V4 PCB (52 × 26 mm).
+                // ── PCB mounting standoffs (Heltec V3/V4, 4 posts) ──────────
+                // Posts at ±(pcb_width/2 − 2) × (phone_length/2 − display_offset_y − 3)
+                // and ±(pcb_width/2 − 2) × (phone_length/2 − display_offset_y − pcb_length + 3)
                 for (pos = [
                     [ pcb_width/2 - 2,  phone_length/2 - display_offset_y - 3],
                     [-pcb_width/2 + 2,  phone_length/2 - display_offset_y - 3],
@@ -74,7 +78,7 @@ module top_shell() {
                     [-pcb_width/2 + 2,  phone_length/2 - display_offset_y - pcb_length + 3]
                 ]) {
                     translate([pos[0], pos[1], wall_thickness])
-                        screw_post(screw_post_h, screw_post_d, screw_hole_d);
+                        screw_post(standoff_height, standoff_diameter, screw_hole_d);
                 }
 
                 // ── Internal reinforcement ribs ──────────────────────────────
@@ -85,6 +89,7 @@ module top_shell() {
                     cube([rib_t, rib_il, rib_h]);
 
                 // Lateral ribs at 1/3 and 2/3 of interior Y span
+                // Separates PCB area / battery pocket / slider cavity
                 for (frac = [1/3, 2/3]) {
                     translate([-rib_iw/2,
                                -phone_length/2 + wall_thickness
@@ -101,24 +106,42 @@ module top_shell() {
                             body_z,
                             max(corner_radius - wall_thickness, 0.5));
 
-            // ── Battery recess (integrated battery cover) ────────────────────
-            // Sunken pocket for the LiPo pouch cell at +Y end, 5 mm from wall.
+            // ── Battery pocket (MakerFocus 3000 mAh, 71 × 51 × 9 mm) ───────
+            // Centred in X; positioned at +Y end clear of the antenna keepout.
+            // Wire routing channel (2 × 6 mm) runs toward the PCB JST connector.
             translate([0,
-                       phone_length/2 - wall_thickness - lipo_length/2 - 5,
+                       phone_length/2 - wall_thickness - battery_pocket_y/2 - 5,
                        wall_thickness])
-                cube([lipo_width + 1, lipo_length + 1, lipo_thickness + 1],
+                cube([battery_pocket_x, battery_pocket_y, battery_pocket_z],
                      center = true);
 
-            // ── T-slot rail channels (bottom face, Z = 0 upward) ─────────────
-            // Two T-slot channels at Y = ±rail_y accept keyboard-tray runners.
-            // Channels span the full phone_width; lip void extends 1 mm past each
-            // X end; entry chamfer at +X; snap ramp near −X end.
+            // Wire channel from battery pocket to PCB JST connector
+            translate([pcb_width/2,
+                       phone_length/2 - wall_thickness
+                           - battery_pocket_y - 5 - wire_channel_h/2,
+                       wall_thickness])
+                cube([wire_channel_w, wire_channel_h, body_z], center = true);
+
+            // ── Dovetail rail grooves (bottom face, Z = 0 upward) ───────────
+            // Two grooves at Y = ±rail_y accept keyboard-tray dovetail runners.
+            // Grooves span the full phone_width; entry chamfer at +X end.
+            // Centred on each rail_y position.
             for (side = [-1, 1]) {
                 translate([-phone_width/2 - 1,
-                           side * rail_y - rail_channel_w/2,
+                           side * rail_y,
                            0])
                     rail_channel_void(phone_width);
             }
+
+            // ── Wire routing groove alongside +Y rail ────────────────────────
+            // 6 mm wide × 2 mm deep groove outside the +Y rail for keyboard
+            // flex cable routing; prevents cable pinching during slider motion.
+            translate([-phone_width/2,
+                       rail_y + rail_base_width/2 + rail_clearance + 0.5,
+                       -0.1])
+                cube([phone_width,
+                      wire_tunnel_width,
+                      wire_tunnel_height + 0.1]);
 
             // ── Magnet pockets – CLOSED-position detent (body bottom, Z = 0) ─
             // Tray magnets at tray-local X = +detent_x_offset align here
@@ -180,6 +203,7 @@ module top_shell() {
                     rounded_box(14, 4, wall_thickness + 0.2, 1);
 
             // ── USB-C port (−Y / bottom edge) ─────────────────────────────────
+            // Opening: 11 mm wide × 4 mm tall (per spec)
             translate([0,
                        -phone_length/2 - 0.1,
                        bot_shell_z/2 + 1])
@@ -187,6 +211,7 @@ module top_shell() {
                     rounded_box(usbc_width, usbc_height, wall_thickness + 0.4, 1);
 
             // ── SMA antenna connector hole (+Y / top edge) ────────────────────
+            // Antenna keepout_radius = 12 mm reserved around this connector.
             translate([phone_width/2 - 12,
                        phone_length/2 - 0.1,
                        bot_shell_z/2 + 2])
@@ -230,17 +255,17 @@ module top_shell() {
             }
         }
 
-        // ── Stop blocks inside rail channels ─────────────────────────────────
-        // Added AFTER the main difference() so they protrude into the channel void.
-        // Height = stop_block_height (2 mm), depth = stop_block_depth (2 mm),
-        // width = rail_channel_w (spans full stem void width).
-        // The runner -X tip has a stop_cutout (2.5 mm) that clears these blocks
-        // during assembly; after assembly they prevent over-travel on opening.
+        // ── Stop blocks inside rail grooves ──────────────────────────────────
+        // Added AFTER the main difference() so they protrude into the groove void.
+        // Dimensions: stop_block_depth (X) × groove_opening_w (Y) × stop_block_height (Z).
+        // Positioned at body X = stop_block_pos_x − stop_block_depth to stop_block_pos_x.
+        // The runner −X tip stop_cutout (2.5 mm) clears these blocks during assembly;
+        // after assembly, the solid runner body hits them at full travel.
         for (side = [-1, 1]) {
             translate([stop_block_pos_x - stop_block_depth,
-                       side * rail_y - rail_channel_w/2,
+                       side * rail_y - groove_opening_w / 2,
                        0])
-                cube([stop_block_depth, rail_channel_w, stop_block_height]);
+                cube([stop_block_depth, groove_opening_w, stop_block_height]);
         }
     }
 }

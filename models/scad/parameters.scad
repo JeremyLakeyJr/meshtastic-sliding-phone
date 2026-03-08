@@ -7,25 +7,36 @@
 //   Closed: 95 × 120 × 27 mm (X × Y × Z)   Open: ~160 × 120 × 27 mm
 //
 // Mechanism: the keyboard tray slides in the −X direction (shortways, along
-// the 95 mm short axis) along two parallel captured T-slot rails.
+// the 95 mm short axis) along two parallel captured dovetail rails.
 // Holding the phone in landscape (120 mm horizontal, 95 mm vertical), the
 // keyboard slides downward to expose the CardKB.
 //
-// Rail system: T-slot captured-lip, rail_width=3 mm, rail_height=2 mm,
+// Rail system: trapezoidal dovetail, rail_base_width=4 mm (cap/free end),
+// rail_top_width=1.2 mm (base/tray-attachment end), rail_height=3 mm,
 // clearance=0.35 mm.  Magnets: 10 mm × 4 mm neodymium disc, pockets 10.3 mm
 // bore × 4.2 mm deep with 0.5 mm retention lip.  Slider travel = 65 mm,
 // exposing ≥ 60 mm of tray / CardKB area.
 //
+// RAIL CROSS-SECTION (Y–Z plane, runner on keyboard tray):
+//
+//   ┌──────────────────────┐  ← free end cap  (rail_base_width = 4 mm)
+//    \                    /
+//     \                  /   ← angled sides (~65° from horizontal, FDM printable)
+//      └────────────────┘    ← tray-face base (rail_top_width  = 1.2 mm)
+//
+// Groove in top shell opens narrow (1.9 mm) at shell face, widens to 4.7 mm
+// at rail_height depth, then has channel_standoff straight zone for passive
+// ~3° typing angle at full extension.
+//
 // STRUCTURE (2-piece design)
 //   top_shell     – unified enclosure: display, PCB, battery, rails, ports
-//   keyboard_tray – sliding component: CardKB, T-runners, magnets
+//   keyboard_tray – sliding component: CardKB, dovetail runners, magnets
 //   (bottom_shell is an alias for keyboard_tray)
 // ============================================================================
 
 // --- Overall phone body footprint (closed) ---
 phone_length    = 120;   // Y: body length
-// phone_width is 95 mm to give adequate rail engagement at 65 mm travel:
-//   engagement = phone_width − slider_travel = 95 − 65 = 30 mm  ✓
+// phone_width = 95 mm: slider_travel(65) + rail_engagement(30) = 95  ✓
 phone_width     =  95;   // X: body width
 
 // --- Component heights (Z) ---
@@ -55,10 +66,33 @@ pcb_width       = 26;    // Board X width
 pcb_thickness   =  1.6;  // PCB thickness
 pcb_clearance   =  9;    // Component height above PCB
 
-// --- LiPo battery (slim 3.7 V pouch, ~50×40×5 mm nominal) ---
-lipo_thickness  =  6;    // 5 mm + 1 mm tolerance
-lipo_width      = 42;    // 40 mm + 2 mm tolerance
-lipo_length     = 52;    // 50 mm + 2 mm tolerance
+// --- PCB standoffs (M2 screws, Heltec V3/V4) ---
+standoff_height   = 4.0;  // Standoff height – per spec
+standoff_diameter = 5.0;  // Standoff outer diameter – per spec
+screw_hole_d      = 2.2;  // M2 screw hole diameter – per spec
+screw_post_d      = standoff_diameter;   // Alias
+screw_post_h      = standoff_height;     // Alias
+
+// --- USB-C port cutout ---
+usbc_width      = 11.0;  // USB-C opening width – per spec (was 9.5 mm)
+usbc_height     =  4.0;  // USB-C opening height – per spec (was 3.5 mm)
+
+// --- Battery pocket (MakerFocus 3000 mAh 3.7 V LiPo, ~70×50×8 mm nominal) ---
+battery_pocket_x =  71.0;  // Pocket X dimension – per spec
+battery_pocket_y =  51.0;  // Pocket Y dimension – per spec
+battery_pocket_z =   9.0;  // Pocket depth (Z) – per spec
+
+// Wire routing channel from battery pocket to Heltec JST connector
+wire_channel_w   =  2.0;   // Channel width
+wire_channel_h   =  6.0;   // Channel height (Z)
+
+// --- Antenna keepout zone ---
+antenna_keepout_radius = 12.0;  // No battery/wiring within this radius of SMA
+
+// Legacy LiPo parameters (kept for backward compatibility)
+lipo_thickness  =  6;
+lipo_width      = 42;
+lipo_length     = 52;
 
 // ============================================================================
 // CardKB keyboard module (M5Stack CardKB v1.1, I²C)
@@ -73,9 +107,9 @@ cardkb_h         = 54;   // CardKB short axis (along sliding X)
 cardkb_thickness =  7;   // CardKB height (Z)
 
 // Keyboard fit parameters
-keyboard_clearance       = 0.5;  // Per-side clearance around keyboard in X and Y
-keyboard_pocket_depth    = 8;    // Pocket depth (≥ cardkb_thickness + clearance)
-keyboard_height_clearance = 10;  // Minimum internal Z clearance when keyboard is inside
+keyboard_clearance        = 0.5;  // Per-side clearance around keyboard in X and Y
+keyboard_pocket_depth     = 8;    // Pocket depth (≥ cardkb_thickness + clearance)
+keyboard_height_clearance = 10;   // Minimum internal Z clearance when keyboard is inside
 
 // --- Keyboard slide travel ---
 // slider_travel = 65 mm exposes the full 54 mm CardKB height plus margin.
@@ -84,72 +118,98 @@ slider_travel    = 65;   // mm; fully exposes CardKB
 keyboard_travel  = slider_travel;  // Backward-compatible alias
 
 // ============================================================================
-// Parallel captured-lip rail system (T-slot)
+// Parallel captured dovetail rail system
 // ============================================================================
-// Two T-shaped runners on the keyboard-tray top face protrude upward into
-// matching T-slot channels cut into the top-shell underside.
-// Runners run along the X axis, positioned at Y = ±rail_y from phone centreline.
+// Two trapezoidal dovetail runners on the keyboard-tray top face protrude
+// upward into matching dovetail grooves cut into the top-shell underside.
+// Runners run along the X axis at Y = ±rail_y from the phone centreline.
 //
 // Runner cross-section (Y–Z plane):
-//   ┌─────────────────┐  ← lip cap  (rail_w + 2×rail_lip_w wide, rail_lip_h tall)
-//   └───┐       ┌─────┘
-//       │ stem  │           (rail_w wide, rail_h − rail_lip_h tall)
-//       └───────┘
+//   Narrow base (rail_top_width  = 1.2 mm) at tray face (Z = tray_z)
+//   Wide cap   (rail_base_width  = 4.0 mm) at free end (Z = tray_z + rail_height)
+//   Height: rail_height = 3.0 mm
 //
-// Channel standoff = rail_channel_h − rail_h = 4.5 − 2.0 = 2.5 mm
-// (extra clearance accommodates the slight typing angle at full extension)
+// Groove cross-section in top shell:
+//   Opening (Z = 0, shell face): rail_top_width  + 2×rail_clearance = 1.9 mm  (narrow)
+//   Inner   (Z = rail_height):   rail_base_width + 2×rail_clearance = 4.7 mm  (wide)
+//   Standoff zone (Z = rail_height … rail_height+channel_standoff): straight 4.7 mm
+//   Total groove depth = rail_height + channel_standoff = 5.0 mm
+//
+// Capture: runner cap (4 mm) > groove opening (1.9 mm) → tray cannot separate
+// Passive typing angle at full extension ≈ atan(channel_standoff/30 mm) ≈ 3.8° ≈ 3°
+//
+// Rail spacing: rail_spacing = 80 mm → rail_y = ±40 mm (prevents rotational tilt)
 // ============================================================================
-rail_w          =  3.0;  // Runner stem width   (Y direction) – per spec
-rail_h          =  2.0;  // Runner height       (Z) – per spec
-rail_y          = 40.0;  // ±Y distance from phone centreline to runner centre
-
-// Captured-lip geometry
-rail_lip_h      =  1.0;  // Height of T-rail lip cap
-rail_lip_w      =  1.5;  // Width of lip overhang each side beyond stem (Y)
+rail_base_width = 4.0;   // Runner cap width (wide, free end) – per spec
+rail_top_width  = 1.2;   // Runner base width (narrow, tray-attachment) – per spec
+rail_height     = 3.0;   // Runner height (Z) – per spec
+rail_angle      = 45.0;  // Reference dovetail side angle (degrees) – per spec
+rail_spacing    = 80.0;  // Centre-to-centre Y distance between rails – per spec
+rail_y          = rail_spacing / 2;  // ±Y from phone centreline = 40.0 mm
 
 // Printing-tolerance clearance for the rail
-rail_clearance  =  0.35; // Per-side clearance between runner and channel – per spec
+rail_clearance  = 0.35;  // Per-side clearance between runner and groove – per spec
 
-// Entry chamfer at the +X insertion end of the channel
-rail_entry_chamfer = 0.6;
+// Progressive clearance values (FDM tolerance compensation along travel)
+clearance_start = 0.30;  // Start of travel (insertion / closed end)
+clearance_mid   = 0.35;  // Mid-travel nominal (= rail_clearance)
+clearance_end   = 0.45;  // End of travel (fully open; slightly looser)
+
+// Entry chamfer at the +X insertion end of the groove
+rail_entry_chamfer = 1.0;  // Per spec (was 0.6 mm)
 rail_chamfer       = rail_entry_chamfer;  // Alias
 
-// Channel dimensions derived from rail geometry
-rail_channel_w  = rail_w  + 2 * rail_clearance;  // 3.7 mm  – stem void width
-rail_channel_h  = rail_h  + 2.5;                 // 4.5 mm  – 2.5 mm standoff
-rail_height     = rail_channel_h;                 // Alias
+// Channel standoff: extra depth beyond rail_height for passive typing tilt.
+// At full extension (30 mm engagement, 65 mm keyboard arm):
+//   tilt ≈ atan(channel_standoff / 30) ≈ atan(2/30) ≈ 3.8° ≈ 3°  ✓
+channel_standoff = 2.0;   // mm of straight zone beyond rail_height
 
-// --- Snap-ramp geometry (auto-finish open action, last 5 mm of travel) ---
-snap_ramp_x     =  5.0;  // Length of ramp zone along X (mm)
-snap_ramp_z     =  0.4;  // Peak height of ramp above channel floor (mm)
+// Derived channel dimensions (used by top_shell stop-block placement)
+rail_channel_w     = rail_top_width  + 2 * rail_clearance;   // 1.9 mm groove opening
+rail_channel_inner = rail_base_width + 2 * rail_clearance;   // 4.7 mm groove inner
+rail_channel_h     = rail_height + channel_standoff;          // 5.0 mm total depth
 
-// --- Typing angle ---
-// A slight typing angle (~3°) is produced passively when the keyboard is fully
-// extended: the generous 2.5 mm standoff in the T-slot channel allows the tray
-// to rest at a natural incline under gravity / hand pressure.  No angled rails
-// are required — the design uses the standoff clearance for this effect.
-typing_angle    =  3.0;  // degrees (design target; achieved passively)
+// Pop-up mechanism parameters (passive via channel_standoff)
+rail_slope_angle    = 3.0;  // Target typing angle (degrees) – per spec
+maximum_lift_height = 3.0;  // Maximum tray lift at full extension (mm) – per spec
+
+// Travel stop and detent bump heights
+stop_bump_height = 1.2;  // Travel stop bump height – per spec
+detent_height    = 0.3;  // Tactile detent bump height along rail – per spec
+
+// Legacy T-slot aliases (kept for backward compatibility)
+rail_w      = rail_top_width;    // Old stem width alias
+rail_h      = rail_height;       // Old rail height alias
+rail_lip_h  = 0.0;
+rail_lip_w  = 0.0;
+snap_ramp_x = 5.0;
+snap_ramp_z = 0.4;
+typing_angle = rail_slope_angle;
+
+// --- Wire routing tunnel (for keyboard flex cable alongside rail) ---
+wire_tunnel_width  = 6.0;  // Tunnel width (Y direction) – per spec
+wire_tunnel_height = 2.0;  // Tunnel height (Z direction) – per spec
 
 // ============================================================================
-// End-stop system (stop blocks inside rail channels)
+// End-stop system (stop blocks inside rail grooves)
 // ============================================================================
-// Small rectangular blocks fixed to the channel floor near the open end of
-// the body prevent the tray from being accidentally removed.
+// Small rectangular blocks fixed to the groove entrance face (Z = 0) prevent
+// the tray from being pulled too far out (over-travel).
 //
-// The runner -X tip has a matching stop_cutout notch that allows the runner to
-// pass the block during initial assembly from the +X entry end.  After assembly
-// the block is trapped inside the runner travel zone and acts as a hard stop.
+// The runner −X tip has a matching stop_cutout notch (stop_cutout deep × stop
+// block width) that allows the runner tip to pass the stop block during initial
+// assembly from the +X entry end.  After assembly, the solid runner body hits
+// the stop block face when the tray is pulled to slider_travel − tab_stop_margin.
 //
-//   Stop block +X face at body X = −(slider_travel − tab_stop_margin − phone_width/2)
+//   Stop block +X face: body X = −(slider_travel − tab_stop_margin − phone_width/2)
 //                               = −(65 − 2 − 47.5) = −15.5 mm from body centre
 // ============================================================================
-stop_block_height = 2.0;   // Height of stop block above channel floor – per spec
-stop_cutout       = 2.5;   // Depth of runner tip cutout enabling assembly – per spec
-stop_block_depth  = 2.0;   // X-dimension of stop block (must be ≤ stop_cutout)
-tab_stop_margin   = 2.0;   // Travel margin before hard stop (mm before slider_travel)
+stop_block_height = 2.0;   // Stop block height (Z) – per spec
+stop_cutout       = 2.5;   // Runner tip cutout depth (X) enabling assembly – per spec
+stop_block_depth  = 2.0;   // Stop block X dimension (must be < stop_cutout)
+tab_stop_margin   = 2.0;   // Travel margin before hard stop (mm)
 
-// Assembly constraint: stop_cutout must exceed stop_block_depth so the runner
-// -X tip can clear the stop block during initial assembly from the +X entry.
+// Assembly constraint: stop_cutout must exceed stop_block_depth
 assert(stop_cutout > stop_block_depth,
        "stop_cutout must exceed stop_block_depth for assembly clearance");
 
@@ -161,14 +221,11 @@ tab_z_extra     =  1.5;
 // ============================================================================
 // Neodymium disc-magnet detents (10 mm × 4 mm, N35 grade)
 // ============================================================================
-// Magnets: 10 mm diameter, 4 mm thick.
 // Pocket bore = 10.3 mm (0.15 mm per-side clearance for FDM ease-of-fit).
 // A retention lip (0.5 mm wide, 0.5 mm deep) at the pocket entrance snaps
 // the magnet in: entrance bore = 10.3 − 2×0.5 = 9.3 mm < 10 mm magnet dia.
 // The FDM lip deflects slightly on insertion; magnet cannot back out.
 // Pocket depth 4.2 mm keeps magnet 0.2 mm recessed below the face.
-//
-//   Air gap between opposing faces = 2 × 0.2 mm recess + rail standoff = 2.9 mm  ✓
 // ============================================================================
 magnet_d         = 10.0;  // Physical magnet diameter (mm)
 magnet_h         =  4.0;  // Physical magnet thickness (mm)
@@ -204,18 +261,13 @@ detent_x_offset = 32.0;  // mm from body centre toward +X
 sma_diameter    =  6.5;
 sma_flat_width  =  8.0;
 
-// --- USB-C port ---
-usbc_width      =  9.5;
-usbc_height     =  3.5;
-
 // --- Speaker / microphone ---
 speaker_diameter = 12;
 mic_diameter     =  2;
 
-// --- Screw posts (M2) ---
-screw_hole_d    =  2.2;
-screw_post_d    =  5.0;
-screw_post_h    =  5.0;
+// --- Structural reinforcement ribs ---
+rib_width  = 2.0;  // Rib thickness – per spec
+rib_height = 6.0;  // Rib height (Z span inside cavity) – per spec
 
 // --- Legacy aliases (used by antenna_mount) ---
 bot_shell_length = phone_length;
