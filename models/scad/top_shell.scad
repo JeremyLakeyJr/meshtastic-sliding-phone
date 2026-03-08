@@ -39,10 +39,10 @@ module top_shell() {
     rib_h  = body_z - wall_thickness;               // floor-to-ceiling span inside cavity
     rib_iw = phone_width  - 2 * wall_thickness;     // interior width  (X)
     rib_il = phone_length - 2 * wall_thickness;     // interior length (Y)
-    standoff_hole_depth = max(standoff_height - 0.8, 0.8);   // blind hole; leaves solid floor
+    standoff_hole_depth = max(standoff_height - standoff_floor_thickness, standoff_floor_thickness);
     side_rail_w = wall_thickness;
-    side_rail_l = 16;
-    side_rail_h = 3;
+    side_rail_l = side_rail_length;
+    side_rail_h = side_rail_height;
 
     // PCB platform and standoff XY positions (Heltec V3/V4 mounting corners)
     standoff_positions = [
