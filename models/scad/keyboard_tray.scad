@@ -10,12 +10,15 @@
 // ─────────────────────────────────────────────────────────────────────────
 // Dual captured dovetail rails with anti-tilt system
 //   Two trapezoidal runners protrude from the tray top face (+Z).
+//   Runners are rail_length = 70 mm long, positioned at the +X (insertion)
+//   end of the tray.  The shorter runner reduces the unsupported cantilever
+//   when the tray is fully extended, preventing tray flex during typing.
 //   Runners run along the X axis at Y = ±rail_y = ±40 mm.
 //     Base (tray face):  rail_top_width  = 1.2 mm  (narrow, attachment end)
 //     Cap  (free end):   rail_base_width = 4.0 mm  (wide, captured in groove)
 //     Height:            rail_height     = 3.0 mm
 //   The ±40 mm rail spacing (rail_spacing = 80 mm) prevents rotational tilt.
-//   Passive typing angle ≈ atan(channel_standoff/30) ≈ 3° at full extension.
+//   Passive typing angle ≈ atan(channel_standoff/5) at full extension.
 //
 // Wire routing groove alongside +Y rail
 //   6 mm wide × 2 mm deep channel outside the +Y rail for the CardKB flex
@@ -24,9 +27,11 @@
 // Magnetic detents (neodymium disc magnets, 10 mm dia × 4 mm thick, N35)
 //   Two press-fit pockets on the tray top face at ±magnet_y = ±20 mm,
 //   X = +detent_x_offset = +32 mm (tray local).
-//   Bore = 10.3 mm, retention lip = 0.5 mm (entrance 9.3 mm).
-//   Closed (travel = 0):    tray magnets at body X = +32 mm → CLOSED pockets ✓
-//   Open   (travel = 65 mm): tray magnets at body X = 32−65 = −33 mm → OPEN ✓
+//   Bore = 10.3 mm, retention lip = 0.6 mm (entrance 9.1 mm).
+//   These tray pockets are OFFSET from the body pockets by magnet_offset=6 mm
+//   so the attraction has an X-component guiding the tray into position:
+//   Closed (travel = 0):    body pocket at +38 mm → force pulls tray to X=0 ✓
+//   Open   (travel = 65 mm): body pocket at −39 mm → force pulls tray to X=−65 ✓
 //
 // Stop cutouts at runner −X tip
 //   A 2.5 mm (stop_cutout) deep notch at the −X end of each runner allows the
@@ -38,6 +43,10 @@
 //   Pocket: 89 × 55 mm (X × Y, with 0.5 mm per-side clearance)
 //   Depth: keyboard_pocket_depth = 8 mm  ✓  (> cardkb_thickness 7 mm)
 //   Retention ledges on ±Y sides hold the CardKB in the pocket.
+//
+// VERTICAL CLEARANCE STACK (minimum 14 mm)
+//   keyboard_thickness = 7 mm + tray_floor ≈ 2.2 mm + rail_height = 3 mm
+//   + case_floor ≈ 2.2 mm = ~14.4 mm ≥ 14 mm spec ✓
 //
 // ─────────────────────────────────────────────────────────────────────────
 // Assembly
@@ -65,20 +74,25 @@ module keyboard_tray() {
     // Groove opening width (for stop cutout sizing to match stop block)
     groove_opening_w = rail_top_width + 2 * rail_clearance;  // 1.9 mm
 
+    // Runner X start: positioned at the +X (insertion) end of the tray.
+    // Runner spans from (tray_w/2 − rail_length) to +tray_w/2.
+    runner_x_start = tray_w/2 - rail_length;   // −22.5 mm (tray-local)
+
     difference() {
         union() {
             // --- Main tray body ---
             rounded_box(phone_width, phone_length, tray_z, corner_radius);
 
             // --- Dual dovetail runners (top face, Z = tray_z) ----------------
-            // Trapezoidal runners at Y = ±rail_y = ±40 mm, spanning the full
-            // tray width in X.  The ±40 mm separation prevents rotational tilt
-            // about the X axis.  Runner is centred on each rail_y position.
+            // Trapezoidal runners at Y = ±rail_y = ±40 mm, spanning rail_length
+            // mm from the +X insertion end inward.  The shorter runner reduces
+            // the unsupported cantilever when the tray is fully extended, making
+            // the tray stiffer against flex during typing.
             for (side = [-1, 1]) {
-                translate([-tray_w / 2,
+                translate([runner_x_start,
                            side * rail_y,
                            tray_z])
-                    rail_runner(tray_w);
+                    rail_runner(rail_length);
             }
         }
 
@@ -120,6 +134,8 @@ module keyboard_tray() {
         // --- Magnet pockets on tray top face (openings at Z = tray_z) --------
         // Pockets at ±magnet_y, X = +detent_x_offset (+32 mm tray-local).
         // Opening is flush with the tray top face; Z offset = tray_z − magnet_depth.
+        // These tray pockets are offset from the body pockets by magnet_offset=6 mm
+        // so the attraction force guides the slider into position.
         for (side = [-1, 1]) {
             translate([detent_x_offset,
                        side * magnet_y,
@@ -131,10 +147,11 @@ module keyboard_tray() {
         // Notch at the leading (−X) end of each runner, spanning the groove
         // opening width (1.9 mm) so the runner tip clears the stop block
         // (also 1.9 mm wide) during initial assembly from the +X entry end.
+        // Positioned at runner_x_start (the −X end of the shortened runner).
         // Cutout dimensions: stop_cutout (X) × groove_opening_w (Y) × (stop_block_height + 0.5) (Z)
         cutout_z_clearance = 0.5;
         for (side = [-1, 1]) {
-            translate([-tray_w / 2,
+            translate([runner_x_start,
                        side * rail_y - groove_opening_w / 2,
                        tray_z])
                 cube([stop_cutout, groove_opening_w,

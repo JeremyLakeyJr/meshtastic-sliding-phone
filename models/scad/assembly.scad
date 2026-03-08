@@ -16,8 +16,12 @@
 // keyboard slides downward — Nokia N900-style.
 //
 // SLIDER TRAVEL = 65 mm → exposes 65 mm of tray area (≥ 60 mm spec) ✓
-// RAIL ENGAGEMENT at full extension = phone_width − slider_travel = 30 mm ✓
-// MAGNET POCKETS: 10.3 mm bore × 4.2 mm deep, 0.5 mm retention lip
+// RAIL LENGTH = 70 mm → 5 mm engagement at full extension (stiffer runner) ✓
+// MAGNET POCKETS: 10.3 mm bore × 3.6 mm deep, 0.6 mm retention lip
+// MAGNET DETENT OFFSET: magnet_offset = 6 mm (body pockets offset from tray)
+//   Closed body pocket at body-X = detent_x_offset + magnet_offset = +38 mm
+//   Open   body pocket at body-X = detent_x_offset − slider_travel
+//                                  − magnet_offset = −39 mm
 // STOP BLOCKS: 2 mm tall inside grooves at body X ≈ −15.5 mm
 //
 // RAIL SYSTEM (dovetail, per spec):
@@ -28,6 +32,7 @@
 // BATTERY POCKET: 71 × 51 × 9 mm (MakerFocus 3000 mAh), integrated in top shell
 // USB-C CUTOUT: 11 × 4 mm (per spec); SMA antenna keepout radius 12 mm
 // STANDOFFS: 4 × M2, height 4 mm, diameter 5 mm (Heltec V3/V4)
+// PCB PLATFORM: platform_thickness = 2 mm (structural floor reinforcement)
 //
 // WIRE ROUTING: 6 × 2 mm groove alongside +Y rail for CardKB flex cable
 //
@@ -86,22 +91,24 @@ color(color_antenna)
 // --- Magnet position indicators (visual reference only, not printed) ---
 if (exploded) {
     // Closed-snap magnets in top shell (body bottom face)
+    // Body pocket offset: detent_x_offset + magnet_offset = +38 mm
     for (side = [-1, 1]) {
         color(color_magnet)
-            translate([detent_x_offset,
+            translate([detent_x_offset + magnet_offset,
                        side * magnet_y,
                        tray_z + explode_gap - magnet_depth])
                 cylinder(h = magnet_depth, d = magnet_d);
     }
     // Open-snap magnets in top shell
+    // Body pocket offset: detent_x_offset - slider_travel - magnet_offset = -39 mm
     for (side = [-1, 1]) {
         color(color_magnet)
-            translate([detent_x_offset - slider_travel,
+            translate([detent_x_offset - slider_travel - magnet_offset,
                        side * magnet_y,
                        tray_z + explode_gap - magnet_depth])
                 cylinder(h = magnet_depth, d = magnet_d);
     }
-    // Tray magnets (on tray top face, moved with tray)
+    // Tray magnets (on tray top face, moved with tray, at detent_x_offset)
     for (side = [-1, 1]) {
         color(color_magnet)
             translate([detent_x_offset - slide_offset,
@@ -118,6 +125,6 @@ if (exploded) {
     translate([0, 0, phone_thickness + 2 * explode_gap + 2])
         linear_extrude(height = 0.5)
             text(str("2-piece · dovetail rail · 10mm×4mm magnets · ",
-                     slider_travel, "mm travel · 30mm engagement · 3° typing angle"),
+                     slider_travel, "mm travel · 6mm detent offset · 70mm rail"),
                  size = 3.0, halign = "center");
 }

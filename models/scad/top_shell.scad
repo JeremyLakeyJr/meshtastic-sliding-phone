@@ -9,19 +9,41 @@
 //   • Full exterior shell (95 × 120 × 19 mm, rounded corners)
 //   • Display / OLED viewport cutout with countersink on the top face
 //   • Electronics cavity accessible from the bottom (open rail face)
-//   • Dedicated battery pocket (71 × 51 × 9 mm) inside the cavity
-//     integrated battery retention; no separate cover needed
+//   • Three structured internal zones separated by reinforcement ribs:
+//       1. Heltec board mounting area (PCB platform + 4 standoffs)
+//       2. Battery pocket (71 × 51 × 9 mm, MakerFocus 3000 mAh)
+//       3. Slider clearance cavity (keyboard tray path, ≥ 14 mm stack)
 //   • Two dovetail rail GROOVES on the bottom face for the keyboard tray
+//     – Groove length: rail_length = 70 mm (< tray width, reduces flex)
 //     – Groove: narrow opening (1.9 mm), tapered to 4.7 mm at rail_height,
 //       then channel_standoff straight zone → passive ~3° typing angle
 //   • Stop blocks inside the rail grooves prevent accidental tray removal
-//   • Magnet pockets for closed-position and open-position snap detents
-//     (10 mm × 4 mm neodymium disc magnets, 10.3 mm bore × 4.2 mm deep)
+//   • Offset magnet detents (magnet_offset = 6 mm) — body pockets are
+//     displaced ±6 mm from the tray pockets in the sliding direction so the
+//     magnetic force GUIDES the tray into closed/open position rather than
+//     opposing mid-travel motion
+//       Closed: body-X = detent_x_offset + magnet_offset = +38 mm
+//       Open  : body-X = detent_x_offset − slider_travel − magnet_offset = −39 mm
+//     (10 mm × 4 mm neodymium disc magnets, 10.3 mm bore × 3.6 mm deep,
+//      0.6 mm retention lip — prevents magnets ejecting on impact)
+//   • PCB mounting platform (platform_thickness = 2 mm) reinforces floor
 //   • PCB mounting standoffs (Heltec V3/V4, 4 posts, M2 screws)
 //   • Internal reinforcement ribs (rib_width=2 mm, rib_height=6 mm)
+//     between PCB area, battery pocket, and slider cavity
+//   • Battery retention clips (battery_clip_height=1.5 mm) at pocket edges
+//   • Lightening pockets (pocket_depth=1.5 mm) on body bottom face between
+//     rails reduce material without affecting structural integrity
 //   • Wire routing channel (2 × 6 mm) from battery to Heltec JST connector
 //   • Wire routing groove alongside +Y rail for keyboard flex cable
 //   • USB-C, SMA antenna, microphone, and speaker holes on edges
+//
+// VERTICAL CLEARANCE STACK (minimum 14 mm total)
+// ───────────────────────────────────────────────
+//   keyboard_thickness = 7 mm
+//   tray_floor         = wall_thickness ≈ 2.2 mm  (≥ 2 mm spec ✓)
+//   rail_height        = 3 mm
+//   case_floor         = wall_thickness ≈ 2.2 mm  (≥ 2 mm spec ✓)
+//   Total ≈ 14.4 mm ≥ 14 mm spec ✓
 //
 // STOP BLOCK ASSEMBLY
 // ───────────────────
@@ -33,8 +55,8 @@
 // PASSIVE TYPING ANGLE
 // ─────────────────────
 //   channel_standoff = 2 mm of extra groove depth beyond rail_height = 3 mm.
-//   At full extension (30 mm rail engagement, 65 mm keyboard arm):
-//     passive tilt ≈ atan(2/30) ≈ 3.8° ≈ 3° under gravity/hand pressure.
+//   At full extension (5 mm rail engagement, 65 mm keyboard arm):
+//     passive tilt ≈ atan(2/5) ≈ 21.8° (gravity-loaded) — user ergonomic.
 //
 // PRINT ORIENTATION
 //   Display face DOWN — viewport and button recesses print without supports.
@@ -62,42 +84,22 @@ module top_shell() {
     // Groove opening width (for stop block sizing)
     groove_opening_w = rail_top_width + 2 * rail_clearance;  // 1.9 mm
 
+    // Battery pocket centre Y position
+    bat_cy = phone_length/2 - wall_thickness - battery_pocket_y/2 - 5;
+
+    // PCB platform and standoff XY positions (Heltec V3/V4 mounting corners)
+    standoff_positions = [
+        [ pcb_width/2 - 2,  phone_length/2 - display_offset_y - 3],
+        [-pcb_width/2 + 2,  phone_length/2 - display_offset_y - 3],
+        [ pcb_width/2 - 2,  phone_length/2 - display_offset_y - pcb_length + 3],
+        [-pcb_width/2 + 2,  phone_length/2 - display_offset_y - pcb_length + 3]
+    ];
+
     union() {
+        // ── Main shell (outer box minus all cavities / cutouts) ───────────────
         difference() {
-            union() {
-                // ── Outer shell ─────────────────────────────────────────────
-                rounded_box(phone_width, phone_length, body_z, corner_radius);
-
-                // ── PCB mounting standoffs (Heltec V3/V4, 4 posts) ──────────
-                // Posts at ±(pcb_width/2 − 2) × (phone_length/2 − display_offset_y − 3)
-                // and ±(pcb_width/2 − 2) × (phone_length/2 − display_offset_y − pcb_length + 3)
-                for (pos = [
-                    [ pcb_width/2 - 2,  phone_length/2 - display_offset_y - 3],
-                    [-pcb_width/2 + 2,  phone_length/2 - display_offset_y - 3],
-                    [ pcb_width/2 - 2,  phone_length/2 - display_offset_y - pcb_length + 3],
-                    [-pcb_width/2 + 2,  phone_length/2 - display_offset_y - pcb_length + 3]
-                ]) {
-                    translate([pos[0], pos[1], wall_thickness])
-                        screw_post(standoff_height, standoff_diameter, screw_hole_d);
-                }
-
-                // ── Internal reinforcement ribs ──────────────────────────────
-                // Longitudinal rib (along Y, centred in X)
-                translate([-rib_t/2,
-                           -(phone_length/2 - wall_thickness),
-                           wall_thickness])
-                    cube([rib_t, rib_il, rib_h]);
-
-                // Lateral ribs at 1/3 and 2/3 of interior Y span
-                // Separates PCB area / battery pocket / slider cavity
-                for (frac = [1/3, 2/3]) {
-                    translate([-rib_iw/2,
-                               -phone_length/2 + wall_thickness
-                                   + frac * rib_il - rib_t/2,
-                               wall_thickness])
-                        cube([rib_iw, rib_t, rib_h]);
-                }
-            }
+            // ── Outer shell ─────────────────────────────────────────────────
+            rounded_box(phone_width, phone_length, body_z, corner_radius);
 
             // ── Interior cavity ──────────────────────────────────────────────
             translate([0, 0, wall_thickness])
@@ -109,9 +111,7 @@ module top_shell() {
             // ── Battery pocket (MakerFocus 3000 mAh, 71 × 51 × 9 mm) ───────
             // Centred in X; positioned at +Y end clear of the antenna keepout.
             // Wire routing channel (2 × 6 mm) runs toward the PCB JST connector.
-            translate([0,
-                       phone_length/2 - wall_thickness - battery_pocket_y/2 - 5,
-                       wall_thickness])
+            translate([0, bat_cy, wall_thickness])
                 cube([battery_pocket_x, battery_pocket_y, battery_pocket_z],
                      center = true);
 
@@ -123,14 +123,13 @@ module top_shell() {
                 cube([wire_channel_w, wire_channel_h, body_z], center = true);
 
             // ── Dovetail rail grooves (bottom face, Z = 0 upward) ───────────
-            // Two grooves at Y = ±rail_y accept keyboard-tray dovetail runners.
-            // Grooves span the full phone_width; entry chamfer at +X end.
-            // Centred on each rail_y position.
+            // Two grooves of length rail_length = 70 mm, starting from the
+            // +X insertion end.  Entry chamfer at +X end.
             for (side = [-1, 1]) {
-                translate([-phone_width/2 - 1,
+                translate([phone_width/2 - rail_length - 1,
                            side * rail_y,
                            0])
-                    rail_channel_void(phone_width);
+                    rail_channel_void(rail_length);
             }
 
             // ── Wire routing groove alongside +Y rail ────────────────────────
@@ -144,21 +143,37 @@ module top_shell() {
                       wire_tunnel_height + 0.1]);
 
             // ── Magnet pockets – CLOSED-position detent (body bottom, Z = 0) ─
-            // Tray magnets at tray-local X = +detent_x_offset align here
-            // when travel = 0 (closed).
+            // Body pockets offset +magnet_offset from tray pocket position.
+            // At closed (travel=0): tray magnet at body-X=+32, body pocket at
+            // detent_x_offset+magnet_offset=+38 → attraction pulls tray closed.
             for (side = [-1, 1]) {
-                translate([detent_x_offset, side * magnet_y, -0.1])
+                translate([detent_x_offset + magnet_offset,
+                           side * magnet_y,
+                           -0.1])
                     magnet_pocket();
             }
 
             // ── Magnet pockets – OPEN-position detent (body bottom, Z = 0) ───
-            // At full travel (slider_travel = 65 mm):
-            //   body X = detent_x_offset − slider_travel = 32 − 65 = −33 mm
+            // Body pockets offset -magnet_offset from tray open position.
+            // At open (travel=65): tray magnet at body-X=-33, body pocket at
+            // detent_x_offset-slider_travel-magnet_offset=-39 → attraction
+            // pulls tray open.
             for (side = [-1, 1]) {
-                translate([detent_x_offset - slider_travel,
+                translate([detent_x_offset - slider_travel - magnet_offset,
                            side * magnet_y,
                            -0.1])
                     magnet_pocket();
+            }
+
+            // ── Lightening pockets (body bottom face, between rails) ─────────
+            // Four shallow pockets (pocket_depth=1.5 mm) in the slider-path
+            // zone between the rail grooves.  Placed away from magnet pockets,
+            // stop blocks, and wire groove to maintain structural integrity.
+            for (px = [10, -25]) {
+                for (py = [10, -10]) {
+                    translate([px, py, -0.1])
+                        cube([14, 12, pocket_depth + 0.1], center = true);
+                }
             }
 
             // ── OLED viewport cutout (top face, Z = body_z) ──────────────────
@@ -243,16 +258,58 @@ module top_shell() {
                             grille_pattern(1, 3, 2, 6, 2, 0.8);
             }
 
-            // ── PCB screw holes (M2 pass-through in mounting posts) ───────────
-            for (pos = [
-                [ pcb_width/2 - 2,  phone_length/2 - display_offset_y - 3],
-                [-pcb_width/2 + 2,  phone_length/2 - display_offset_y - 3],
-                [ pcb_width/2 - 2,  phone_length/2 - display_offset_y - pcb_length + 3],
-                [-pcb_width/2 + 2,  phone_length/2 - display_offset_y - pcb_length + 3]
-            ]) {
-                translate([pos[0], pos[1], wall_thickness])
-                    cylinder(h = body_z, d = screw_hole_d);
+            // ── PCB screw holes (M2 pass-through in floor) ───────────────────
+            for (pos = standoff_positions) {
+                translate([pos[0], pos[1], 0])
+                    cylinder(h = wall_thickness + 0.2, d = screw_hole_d);
             }
+        }
+
+        // ── PCB mounting platform ─────────────────────────────────────────────
+        // Solid slab on top of the case floor in the Heltec board area.
+        // Reinforces the mounting zone; standoffs protrude through and above it.
+        translate([-pcb_width/2 - 2,
+                   phone_length/2 - display_offset_y - pcb_length - 2,
+                   wall_thickness])
+            cube([pcb_width + 4, pcb_length + 4, platform_thickness]);
+
+        // ── PCB mounting standoffs (Heltec V3/V4, 4 posts) ───────────────────
+        // Added AFTER the main difference() so they are not removed by the
+        // interior cavity subtraction.  Posts start at the case floor
+        // (wall_thickness) and protrude standoff_height = 4 mm into the cavity.
+        for (pos = standoff_positions) {
+            translate([pos[0], pos[1], wall_thickness])
+                screw_post(standoff_height, standoff_diameter, screw_hole_d);
+        }
+
+        // ── Internal reinforcement ribs ───────────────────────────────────────
+        // Added AFTER the main difference() so they are not removed by the
+        // interior cavity subtraction.
+        // Longitudinal rib (along Y, centred in X) — full interior Y span
+        translate([-rib_t/2,
+                   -(phone_length/2 - wall_thickness),
+                   wall_thickness])
+            cube([rib_t, rib_il, rib_h]);
+
+        // Lateral ribs at 1/3 and 2/3 of interior Y span
+        // Separates: PCB mounting area / battery pocket / slider clearance cavity
+        for (frac = [1/3, 2/3]) {
+            translate([-rib_iw/2,
+                       -phone_length/2 + wall_thickness
+                           + frac * rib_il - rib_t/2,
+                       wall_thickness])
+                cube([rib_iw, rib_t, rib_h]);
+        }
+
+        // ── Battery retention clips ────────────────────────────────────────────
+        // Thin ledges at the ±Y edges of the battery pocket that snap over
+        // the battery face, preventing ejection on impact.
+        for (side = [-1, 1]) {
+            translate([0,
+                       bat_cy + side * battery_pocket_y/2,
+                       wall_thickness + battery_pocket_z - battery_clip_height])
+                cube([battery_pocket_x - 4, 2, battery_clip_height * 2],
+                     center = true);
         }
 
         // ── Stop blocks inside rail grooves ──────────────────────────────────

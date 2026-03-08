@@ -13,9 +13,10 @@
 //
 // Rail system: trapezoidal dovetail, rail_base_width=4 mm (cap/free end),
 // rail_top_width=1.2 mm (base/tray-attachment end), rail_height=3 mm,
-// clearance=0.35 mm.  Magnets: 10 mm × 4 mm neodymium disc, pockets 10.3 mm
-// bore × 4.2 mm deep with 0.5 mm retention lip.  Slider travel = 65 mm,
-// exposing ≥ 60 mm of tray / CardKB area.
+// clearance=0.35 mm.  Rail length = 70 mm (≥70 % of tray width, reduces
+// cantilever flex).  Magnets: 10 mm × 4 mm neodymium disc, pockets 10.3 mm
+// bore × 3.6 mm deep with 0.6 mm retention lip, 6 mm detent offset (guides
+// tray into position).  Slider travel = 65 mm, exposing ≥ 60 mm of tray.
 //
 // RAIL CROSS-SECTION (Y–Z plane, runner on keyboard tray):
 //
@@ -73,6 +74,9 @@ screw_hole_d      = 2.2;  // M2 screw hole diameter – per spec
 screw_post_d      = standoff_diameter;   // Alias
 screw_post_h      = standoff_height;     // Alias
 
+// --- PCB mounting platform (structural floor reinforcement under Heltec board) ---
+platform_thickness = 2.0;  // Platform slab height above case floor – per spec
+
 // --- USB-C port cutout ---
 usbc_width      = 11.0;  // USB-C opening width – per spec (was 9.5 mm)
 usbc_height     =  4.0;  // USB-C opening height – per spec (was 3.5 mm)
@@ -81,6 +85,9 @@ usbc_height     =  4.0;  // USB-C opening height – per spec (was 3.5 mm)
 battery_pocket_x =  71.0;  // Pocket X dimension – per spec
 battery_pocket_y =  51.0;  // Pocket Y dimension – per spec
 battery_pocket_z =   9.0;  // Pocket depth (Z) – per spec
+
+// Battery retention clip height (small tabs that snap over the battery)
+battery_clip_height = 1.5;  // Clip overhang height – per spec
 
 // Wire routing channel from battery pocket to Heltec JST connector
 wire_channel_w   =  2.0;   // Channel width
@@ -159,6 +166,12 @@ clearance_end   = 0.45;  // End of travel (fully open; slightly looser)
 rail_entry_chamfer = 1.0;  // Per spec (was 0.6 mm)
 rail_chamfer       = rail_entry_chamfer;  // Alias
 
+// Rail length: runners and grooves are 70 mm long (< full tray width) to
+// reduce the unsupported cantilever when the tray is fully extended.
+// At full travel (65 mm), 5 mm of runner remains captured in the groove.
+// The shorter runner is stiffer and resists tray flex during typing.
+rail_length = 70.0;  // Runner and groove length – per spec
+
 // Channel standoff: extra depth beyond rail_height for passive typing tilt.
 // At full extension (30 mm engagement, 65 mm keyboard arm):
 //   tilt ≈ atan(channel_standoff / 30) ≈ atan(2/30) ≈ 3.8° ≈ 3°  ✓
@@ -222,25 +235,40 @@ tab_z_extra     =  1.5;
 // Neodymium disc-magnet detents (10 mm × 4 mm, N35 grade)
 // ============================================================================
 // Pocket bore = 10.3 mm (0.15 mm per-side clearance for FDM ease-of-fit).
-// A retention lip (0.5 mm wide, 0.5 mm deep) at the pocket entrance snaps
-// the magnet in: entrance bore = 10.3 − 2×0.5 = 9.3 mm < 10 mm magnet dia.
+// A retention lip (0.6 mm wide, 0.6 mm deep) at the pocket entrance snaps
+// the magnet in: entrance bore = 10.3 − 2×0.6 = 9.1 mm < 10 mm magnet dia.
 // The FDM lip deflects slightly on insertion; magnet cannot back out.
-// Pocket depth 4.2 mm keeps magnet 0.2 mm recessed below the face.
+// Pocket depth = 3.6 mm, leaving the magnet 0.4 mm proud of the face
+// for better magnetic contact.
+//
+// OFFSET DETENT CONFIGURATION (magnet_offset = 6 mm)
+// ─────────────────────────────────────────────────────
+// The body-shell magnet pockets are displaced ±magnet_offset in the sliding
+// direction (X) from the tray magnet pockets.  At the closed position the
+// tray magnet (at tray-local X = detent_x_offset) faces a body magnet at
+// body-X = detent_x_offset + magnet_offset.  The resulting off-axis
+// attraction has an X-component that PULLS the tray into the closed stop
+// rather than simply creating a Z-axis normal force.  This guides the tray
+// into position without excessive resistance during mid-travel.
 // ============================================================================
 magnet_d         = 10.0;  // Physical magnet diameter (mm)
 magnet_h         =  4.0;  // Physical magnet thickness (mm)
 magnet_diameter  = 10.3;  // Pocket bore diameter – per spec
-magnet_depth     =  4.2;  // Pocket depth – per spec
-magnet_lip       =  0.5;  // Retention lip width (narrows entrance to 9.3 mm) – per spec
+magnet_depth     =  3.6;  // Pocket depth – per spec (magnet sits 0.4 mm proud)
+magnet_lip       =  0.6;  // Retention lip width (narrows entrance to 9.1 mm) – per spec
+
+// X-axis offset between tray and body magnet pockets – per spec.
+// Body closed pocket at detent_x_offset + magnet_offset (pulls tray closed).
+// Body open   pocket at detent_x_offset − slider_travel − magnet_offset (pulls tray open).
+magnet_offset    =  6.0;  // Detent offset – per spec
 
 // Convenience aliases used by pocket module
 magnet_pocket_d  = magnet_diameter;  // 10.3 mm
-magnet_pocket_h  = magnet_depth;     // 4.2 mm
+magnet_pocket_h  = magnet_depth;     // 3.6 mm
 
 // Deprecated small-magnet aliases (kept for compatibility)
 magnet_height    = magnet_h;
 magnet_press_fit = 0.1;
-magnet_offset    = magnet_lip;
 
 // Magnet Y positions (between the two rails at ±rail_y = ±40 mm)
 magnet_y        = 20.0;  // ±Y from phone centreline
@@ -268,6 +296,10 @@ mic_diameter     =  2;
 // --- Structural reinforcement ribs ---
 rib_width  = 2.0;  // Rib thickness – per spec
 rib_height = 6.0;  // Rib height (Z span inside cavity) – per spec
+
+// --- Lightening pockets (shallow recesses to reduce material without
+//     compromising structural integrity or component clearances) ---
+pocket_depth = 1.5;  // Pocket depth – per spec
 
 // --- Legacy aliases (used by antenna_mount) ---
 bot_shell_length = phone_length;

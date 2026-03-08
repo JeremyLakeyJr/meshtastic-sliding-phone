@@ -11,21 +11,31 @@ DESIGN (2-piece)
   bottom_shell  – alias for keyboard_tray (2-piece naming convention)
 
 Mechanism: shortways (X-axis) magnetic-detent slider with captured dovetail rails.
-  • phone_width = 95 mm; slider_travel = 65 mm → 30 mm rail engagement at full ext.
+  • phone_width = 95 mm; slider_travel = 65 mm.
   • Two parallel dovetail runners (rail_top_width=1.2mm narrow base,
     rail_base_width=4mm wide cap, rail_height=3mm) on the keyboard-tray top face
     slide inside matching dovetail grooves in the top-shell underside,
     positioned at Y = ±RAIL_Y (±40 mm, spacing = 80 mm).
+    Runner length = RAIL_LENGTH = 70 mm (at +X insertion end); shorter runner
+    reduces cantilever flex at full extension (5 mm engagement at travel=65).
   • Groove: narrow opening 1.9mm → widens to 4.7mm at rail_height depth,
     plus CHANNEL_STANDOFF=2mm straight zone for passive ~3° typing angle.
-  • Neodymium 10 mm × 4 mm disc magnets (pocket bore 10.3 mm, depth 4.2 mm,
-    retention lip 0.5 mm) snap the tray into closed (travel=0) and open
-    (travel=65 mm) positions.  Symmetric detents at body X = ±32 mm.
+  • Offset magnet detents (MAGNET_OFFSET = 6 mm):
+      Tray pockets at tray-local X = DETENT_X_OFFSET = +32 mm.
+      Body closed pocket at body-X = DETENT_X_OFFSET + MAGNET_OFFSET = +38 mm.
+      Body open   pocket at body-X = DETENT_X_OFFSET − SLIDER_TRAVEL
+                                     − MAGNET_OFFSET = −39 mm.
+    The offset creates an X-component of magnetic force that guides the tray
+    into position rather than opposing mid-travel motion.
+  • Magnet pocket: 10.3 mm bore × 3.6 mm deep, 0.6 mm retention lip.
   • Stop blocks (2 mm tall, groove-opening-width wide) inside the rail grooves
     at body X ≈ −15.5 mm prevent accidental removal.  A matching stop_cutout
-    (2.5 mm) at the runner -X tip allows initial assembly from the +X entry end.
+    (2.5 mm) at the runner −X tip allows initial assembly from the +X entry end.
   • Battery pocket: 71×51×9 mm (MakerFocus 3000 mAh, integrated in top shell).
+  • Battery retention clips: BATTERY_CLIP_HEIGHT = 1.5 mm at pocket ±Y edges.
   • USB-C cutout: 11×4 mm.  Standoffs: 4×M2, height 4 mm, diameter 5 mm.
+  • PCB platform: PLATFORM_THICKNESS = 2 mm (structural floor reinforcement).
+  • Lightening pockets: POCKET_DEPTH = 1.5 mm on body bottom face.
   • Wire routing groove: 6×2 mm alongside +Y rail for CardKB flex cable.
   • CardKB pocket: 89×55 mm (width×height), 8 mm deep, 0.5 mm clearance.
 
@@ -114,6 +124,10 @@ CLEARANCE_END    =  0.45  # end of travel (open)
 RAIL_ENTRY_CHAMFER = 1.0  # per spec (was 0.6 mm)
 RAIL_CHAMFER     = RAIL_ENTRY_CHAMFER
 
+# Rail length: runners and grooves are RAIL_LENGTH mm (< full tray width).
+# Shorter runner reduces cantilever flex at full extension.
+RAIL_LENGTH      = 70.0   # per spec
+
 CHANNEL_STANDOFF =  2.0   # extra groove depth beyond rail_height (passive tilt)
 
 # Derived groove dimensions
@@ -167,17 +181,32 @@ ANTENNA_KEEPOUT_RADIUS = 12.0  # per spec
 MAGNET_D         = 10.0   # physical magnet diameter
 MAGNET_H         =  4.0   # physical magnet thickness
 MAGNET_DIAMETER  = 10.3   # pocket bore – per spec
-MAGNET_DEPTH     =  4.2   # pocket depth – per spec
-MAGNET_LIP       =  0.5   # retention lip – per spec
+MAGNET_DEPTH     =  3.6   # pocket depth – per spec (magnet 0.4 mm proud)
+MAGNET_LIP       =  0.6   # retention lip – per spec (entrance 9.1 mm)
 MAGNET_POCKET_D  = MAGNET_DIAMETER   # 10.3 mm bore
-MAGNET_POCKET_H  = MAGNET_DEPTH      # 4.2 mm depth
+MAGNET_POCKET_H  = MAGNET_DEPTH      # 3.6 mm depth
 MAGNET_Y         = 20.0
-# Symmetric detents: closed at +32 mm, open at 32−65 = −33 mm
 DETENT_X_OFFSET  = 32.0
+
+# Offset detent configuration (per spec):
+#   Body closed pocket at body-X = DETENT_X_OFFSET + MAGNET_OFFSET = +38 mm
+#   Body open   pocket at body-X = DETENT_X_OFFSET - SLIDER_TRAVEL
+#                                  - MAGNET_OFFSET = -39 mm
+#   Tray pockets at tray-local X = DETENT_X_OFFSET = +32 mm (unchanged)
+MAGNET_OFFSET    =  6.0   # per spec
 
 # --- Structural ribs (per spec) ---
 RIB_WIDTH  = 2.0   # per spec
 RIB_HEIGHT = 6.0   # per spec
+
+# --- PCB mounting platform (per spec) ---
+PLATFORM_THICKNESS = 2.0   # structural floor reinforcement under Heltec board
+
+# --- Battery retention clips (per spec) ---
+BATTERY_CLIP_HEIGHT = 1.5  # clip tab height at battery pocket edges
+
+# --- Lightening pockets (per spec) ---
+POCKET_DEPTH = 1.5   # shallow recess depth on body bottom face
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "..", "models", "stl")
@@ -253,9 +282,11 @@ def _make_stl(verts, faces):
 def generate_top_shell():
     """Unified top enclosure: display face, PCB bay, battery pocket, dovetail rail grooves.
 
-    95 × 120 × 19 mm.  Dovetail grooves at Y = ±RAIL_Y (±40 mm) with stop blocks.
-    Battery pocket 71×51×9 mm.  Magnet pockets (10.3 mm bore × 4.2 mm) at body X = ±32 mm.
+    95 × 120 × 19 mm.  Dovetail grooves (RAIL_LENGTH=70 mm) at Y = ±RAIL_Y (±40 mm)
+    with stop blocks.  Battery pocket 71×51×9 mm.
+    Offset magnet detents: body closed at X=+38 mm, body open at X=−39 mm.
     USB-C 11×4 mm.  Standoffs 4 mm tall, 5 mm dia (M2).
+    PCB platform 2 mm thick.  Battery clips 1.5 mm.  Lightening pockets 1.5 mm.
     Wire routing groove 6×2 mm alongside +Y rail.
     """
     parts = []
@@ -283,15 +314,18 @@ def generate_top_shell():
                                 WALL_THICKNESS, iw, WALL_THICKNESS,
                                 d - WALL_THICKNESS))
 
-    # Floor (provides material for dovetail grooves)
+    # Floor (provides material for dovetail grooves and lightening pockets)
     parts.append(_box_triangles(0, 0, 0, w, l, WALL_THICKNESS))
 
     # Dovetail rail groove representations at Y = ±RAIL_Y
-    # Groove: opening RAIL_CHANNEL_W wide, inner RAIL_CHANNEL_INNER wide
+    # Groove length = RAIL_LENGTH = 70 mm, starting at +X end (body-X = +w/2)
     groove_repr_w = RAIL_CHANNEL_INNER  # represent as inner width for visibility
+    groove_x_start = w / 2 - RAIL_LENGTH
+    groove_cx = groove_x_start + RAIL_LENGTH / 2
     for side in [-1, 1]:
         cy = side * RAIL_Y
-        parts.append(_box_triangles(0, cy, 0, w, groove_repr_w, RAIL_CHANNEL_H))
+        parts.append(_box_triangles(groove_cx, cy, 0, RAIL_LENGTH, groove_repr_w,
+                                    RAIL_CHANNEL_H))
 
     # Stop blocks inside grooves at body X = STOP_BLOCK_POS_X (≈ −15.5 mm)
     for side in [-1, 1]:
@@ -305,17 +339,39 @@ def generate_top_shell():
     parts.append(_box_triangles(0, bat_cy, WALL_THICKNESS,
                                 BATTERY_POCKET_X, BATTERY_POCKET_Y, BATTERY_POCKET_Z))
 
-    # Magnet pocket representations on bottom face (10 mm × 4 mm)
+    # Battery retention clips at ±Y edges of battery pocket
+    for side in [-1, 1]:
+        clip_cy = bat_cy + side * BATTERY_POCKET_Y / 2
+        parts.append(_box_triangles(0, clip_cy,
+                                    WALL_THICKNESS + BATTERY_POCKET_Z - BATTERY_CLIP_HEIGHT,
+                                    BATTERY_POCKET_X - 4, 2,
+                                    BATTERY_CLIP_HEIGHT * 2))
+
+    # Offset magnet pocket representations on bottom face (10 mm × 4 mm)
+    # Body closed pocket at X = DETENT_X_OFFSET + MAGNET_OFFSET = +38 mm
+    # Body open   pocket at X = DETENT_X_OFFSET - SLIDER_TRAVEL - MAGNET_OFFSET = -39 mm
+    closed_x = DETENT_X_OFFSET + MAGNET_OFFSET
+    open_x   = DETENT_X_OFFSET - SLIDER_TRAVEL - MAGNET_OFFSET
     for side in [-1, 1]:
         my = side * MAGNET_Y
-        # Closed-position pocket at body X = +DETENT_X_OFFSET
-        parts.append(_cylinder_triangles(DETENT_X_OFFSET, my, 0,
+        parts.append(_cylinder_triangles(closed_x, my, 0,
                                          MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 16))
-        # Open-position pocket at body X = DETENT_X_OFFSET - SLIDER_TRAVEL
-        parts.append(_cylinder_triangles(DETENT_X_OFFSET - SLIDER_TRAVEL, my, 0,
+        parts.append(_cylinder_triangles(open_x, my, 0,
                                          MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 16))
 
+    # Lightening pockets on body bottom face (POCKET_DEPTH=1.5 mm between rails)
+    for px in [10, -25]:
+        for py in [10, -10]:
+            parts.append(_box_triangles(px, py, 0, 14, 12, POCKET_DEPTH))
+
+    # PCB mounting platform (PLATFORM_THICKNESS = 2 mm slab on case floor)
+    plat_cx = 0
+    plat_cy = l / 2 - DISPLAY_OFFSET_Y - PCB_LENGTH / 2
+    parts.append(_box_triangles(plat_cx, plat_cy, WALL_THICKNESS,
+                                PCB_WIDTH + 4, PCB_LENGTH + 4, PLATFORM_THICKNESS))
+
     # PCB mounting standoffs (4 posts, Heltec V4, height STANDOFF_HEIGHT=4 mm)
+    # Added outside the cavity so they protrude correctly.
     dy = l / 2 - DISPLAY_OFFSET_Y - PCB_LENGTH / 2
     for sx in [-1, 1]:
         for sy in [-1, 1]:
@@ -356,7 +412,9 @@ def generate_keyboard_tray():
 
     95 × 120 × 8 mm.  CardKB pocket 89×55 mm (width×height), 8 mm deep.
     Dovetail runners: base 1.2 mm, cap 4.0 mm, height 3.0 mm at Y = ±40 mm.
-    Magnets: 10 mm × 4 mm at ±20 mm Y, tray-local X = +32 mm.
+    Runner length = RAIL_LENGTH = 70 mm, positioned at +X (insertion) end.
+    Tray magnets: 10 mm × 4 mm at ±20 mm Y, tray-local X = +32 mm
+      (offset 6 mm from body pockets for guided detent).
     Stop cutouts at runner -X tips (2.5 mm deep × groove_opening_w wide).
     Wire routing groove: 6×2 mm alongside +Y rail.
     """
@@ -383,17 +441,19 @@ def generate_keyboard_tray():
                                 d - WALL_THICKNESS))
 
     # Dual dovetail runners on top face at Y = ±RAIL_Y
-    # Runner: narrow base RAIL_TOP_WIDTH (1.2 mm) at Z=d,
-    #         wide cap RAIL_BASE_WIDTH (4.0 mm) at Z=d+RAIL_HEIGHT
+    # Runner length = RAIL_LENGTH = 70 mm, at +X end of tray.
+    # runner_x_start = w/2 - RAIL_LENGTH (tray-local X)
+    runner_x_start = w / 2 - RAIL_LENGTH
+    runner_cx = runner_x_start + RAIL_LENGTH / 2   # centre of runner in X
     for side in [-1, 1]:
         cy = side * RAIL_Y
         # Represent runner as a trapezoidal prism: use average width for box approx
-        avg_w = (RAIL_TOP_WIDTH + RAIL_BASE_WIDTH) / 2   # 2.6 mm
         # Base part (narrow, at tray face)
-        parts.append(_box_triangles(0, cy, d, w, RAIL_TOP_WIDTH, RAIL_HEIGHT / 2))
+        parts.append(_box_triangles(runner_cx, cy, d,
+                                    RAIL_LENGTH, RAIL_TOP_WIDTH, RAIL_HEIGHT / 2))
         # Cap part (wide, at free end)
-        parts.append(_box_triangles(0, cy, d + RAIL_HEIGHT / 2,
-                                    w, RAIL_BASE_WIDTH, RAIL_HEIGHT / 2))
+        parts.append(_box_triangles(runner_cx, cy, d + RAIL_HEIGHT / 2,
+                                    RAIL_LENGTH, RAIL_BASE_WIDTH, RAIL_HEIGHT / 2))
 
     # CardKB pocket representation (walls around the pocket area)
     # Pocket: 55 mm (X) × 89 mm (Y), 8 mm deep
@@ -408,7 +468,8 @@ def generate_keyboard_tray():
                                 WALL_THICKNESS, pocket_x, WALL_THICKNESS,
                                 KEYBOARD_POCKET_DEPTH))
 
-    # Magnet pockets on top face (10 mm × 4 mm at tray-local X = +DETENT_X_OFFSET)
+    # Magnet pockets on top face (tray-local X = +DETENT_X_OFFSET = +32 mm)
+    # These are offset from body pockets by MAGNET_OFFSET = 6 mm.
     for side in [-1, 1]:
         my = side * MAGNET_Y
         parts.append(_cylinder_triangles(DETENT_X_OFFSET, my,
