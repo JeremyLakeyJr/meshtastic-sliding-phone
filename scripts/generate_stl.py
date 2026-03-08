@@ -12,14 +12,13 @@ DESIGN (2-piece)
 
 Mechanism: shortways (X-axis) magnetic-detent slider with wall-attached rails.
   • phone_width = 95 mm; slider_travel = 65 mm.
-  • Two rectangular rails (RAIL_WIDTH=3mm wide, RAIL_HEIGHT=3mm tall) are
-    additive features on the interior side walls of the top shell at
-    Y = ±WALL_INNER_Y (±57.8 mm), protruding inward.  Rails run along the
-    X axis for RAIL_LENGTH = 70 mm at the +X insertion end.
-    Rail length = 73.7 % of tray width ≥ 70 % spec  ✓
+  • Two rectangular rails (RAIL_WIDTH=3mm wide, RAIL_HEIGHT=3mm tall) protrude
+    BELOW the bottom face (Z = -RAIL_HEIGHT … 0) of the top shell.
+    In world coordinates (top_shell at world Z = tray_z = 8 mm):
+      Rails   : world Z = 5.0 … 8.0 mm
+      Grooves : world Z = 4.65 … 8.0 mm  → 0.35 mm clearance at groove floor ✓
     Bottom floor (Z = 0 … WALL_THICKNESS) is solid and unmodified  ✓
-    Rails sit above the floor surface (Z = WALL_THICKNESS)  ✓
-    Rails do NOT intersect PCB pocket (Y ≈ −1…45 mm) or battery pocket  ✓
+    Interior cavity height = BODY_Z − 2×WALL_THICKNESS preserves display-face top plate  ✓
   • Matching grooves in the tray capture the rails:
       Groove width  = RAIL_WIDTH + 2 × RAIL_CLEARANCE = 3.7 mm
       Groove depth  = RAIL_HEIGHT + RAIL_CLEARANCE     = 3.35 mm
@@ -168,8 +167,8 @@ USBC_H   =  4.0   # per spec (was 3.5 mm)
 
 # --- Standoffs / screw posts (per spec) ---
 STANDOFF_HEIGHT   =  4.0   # per spec (was 5.0 mm)
-STANDOFF_DIAMETER =  5.0   # per spec
-SCREW_HOLE_D      =  2.2
+STANDOFF_DIAMETER =  6.0   # per spec (matches parameters.scad standoff_diameter)
+SCREW_HOLE_D      =  3.0   # per spec (M3 clearance, matches parameters.scad screw_hole_d)
 SCREW_POST_D      =  STANDOFF_DIAMETER
 SCREW_POST_H      =  STANDOFF_HEIGHT   # alias
 
@@ -282,10 +281,11 @@ def generate_top_shell():
     """Unified top enclosure: display face, PCB bay, battery pocket, slider rails.
 
     95 × 120 × 19 mm.  Rectangular slider rails (RAIL_WIDTH=3mm, RAIL_HEIGHT=3mm)
-    on the interior side walls at Y = ±WALL_INNER_Y (±57.8 mm), protruding inward.
-    Rails are additive features – the solid bottom floor is not cut.
-    Battery pocket 71×51×9 mm.  Magnet detents at X=+38/−39 mm.
-    USB-C 11×4 mm.  Standoffs 4 mm tall, 5 mm dia (M2).
+    protrude BELOW the bottom face (Z = -RAIL_HEIGHT … 0), engaging tray grooves.
+    Interior cavity height = BODY_Z - 2*WALL_THICKNESS preserves both floor and
+    display-face top plate.  Battery pocket 71×51×9 mm.
+    Magnet detents at X=+38/−39 mm (offset by MAGNET_OFFSET=6mm).
+    USB-C 11×4 mm.  Standoffs 4 mm tall, 6 mm dia (M3 blind holes).
     PCB platform 2 mm thick.  Battery clips 1.5 mm.  Lightening pockets 1.5 mm.
     Wire routing groove 6×2 mm alongside +Y wire path.
     """
@@ -295,38 +295,37 @@ def generate_top_shell():
     # Outer box (interior cavity approximated via wall boxes)
     parts.append(_box_triangles(0, 0, 0, w, l, d))
 
-    # Top plate
+    # Top plate (display face) – preserved by cavity height = BODY_Z - 2*WALL_THICKNESS
     parts.append(_box_triangles(0, 0, d - WALL_THICKNESS, w, l, WALL_THICKNESS))
 
-    # Side walls
+    # Side walls (from WALL_THICKNESS floor to d-WALL_THICKNESS ceiling)
     iw = w - 2 * WALL_THICKNESS
     il = l - 2 * WALL_THICKNESS
     parts.append(_box_triangles(-(w / 2 - WALL_THICKNESS / 2), 0,
                                 WALL_THICKNESS, WALL_THICKNESS, l,
-                                d - WALL_THICKNESS))
+                                d - 2 * WALL_THICKNESS))
     parts.append(_box_triangles( (w / 2 - WALL_THICKNESS / 2), 0,
                                 WALL_THICKNESS, WALL_THICKNESS, l,
-                                d - WALL_THICKNESS))
+                                d - 2 * WALL_THICKNESS))
     parts.append(_box_triangles(0, -(l / 2 - WALL_THICKNESS / 2),
                                 WALL_THICKNESS, iw, WALL_THICKNESS,
-                                d - WALL_THICKNESS))
+                                d - 2 * WALL_THICKNESS))
     parts.append(_box_triangles(0,  (l / 2 - WALL_THICKNESS / 2),
                                 WALL_THICKNESS, iw, WALL_THICKNESS,
-                                d - WALL_THICKNESS))
+                                d - 2 * WALL_THICKNESS))
 
-    # Floor – solid continuous plane, unmodified (per spec)
+    # Floor – solid bottom panel (Z = 0 … WALL_THICKNESS)
     parts.append(_box_triangles(0, 0, 0, w, l, WALL_THICKNESS))
 
-    # Slider guide rails on interior side walls (additive, per spec)
-    # Rails: RAIL_WIDTH × RAIL_HEIGHT = 3 × 3 mm, protruding inward from Y = ±WALL_INNER_Y
-    # Z = WALL_THICKNESS … WALL_THICKNESS + RAIL_HEIGHT (above the floor surface)
+    # Slider guide rails (protrude BELOW the bottom face, per spec fix)
+    # Rails at Z = -RAIL_HEIGHT … 0 engage tray grooves at world Z = 4.65…8.0 mm.
+    # World Z: tray_z - RAIL_HEIGHT … tray_z = 5.0 … 8.0 mm → fits groove ✓
+    # Y = ±(WALL_INNER_Y - RAIL_WIDTH/2) centre, RAIL_WIDTH = 3 mm
     # X = RUNNER_X_START … +w/2 = −22.5 … +47.5 mm (RAIL_LENGTH = 70 mm)
-    # One rail per interior side wall; does not intersect PCB or battery pockets.
-    rail_cx = RUNNER_X_START + RAIL_LENGTH / 2  # X centre of rail
+    rail_cx = RUNNER_X_START + RAIL_LENGTH / 2
     for side in [-1, 1]:
-        # Rail centre Y = side * (WALL_INNER_Y - RAIL_WIDTH/2)
         cy = side * (WALL_INNER_Y - RAIL_WIDTH / 2)
-        parts.append(_box_triangles(rail_cx, cy, WALL_THICKNESS,
+        parts.append(_box_triangles(rail_cx, cy, -RAIL_HEIGHT,
                                     RAIL_LENGTH, RAIL_WIDTH, RAIL_HEIGHT))
 
     # Battery pocket representation (71 × 51 × 9 mm, per spec)

@@ -83,31 +83,39 @@ module main_body() {
             }
 
             // ── Interior cavity ──────────────────────────────────────────────────
+            // Height = body_z − 2×wall_thickness preserves BOTH the solid bottom
+            // floor (Z = 0…wall_thickness) AND the display-face top plate
+            // (Z = body_z−wall_thickness…body_z) so the viewport cutout works.
             translate([0, 0, wall_thickness])
                 rounded_box(phone_width  - 2 * wall_thickness,
                             phone_length - 2 * wall_thickness,
-                            body_z,
+                            body_z - 2 * wall_thickness,
                             max(corner_radius - wall_thickness, 0.5));
 
-            // ── Battery recess ───────────────────────────────────────────────────
+            // ── Battery recess (MakerFocus 3000 mAh, 71 × 51 × 9 mm) ─────────────
             translate([0,
-                       phone_length/2 - wall_thickness - lipo_length/2 - 5,
+                       phone_length/2 - wall_thickness - battery_pocket_y/2 - 5,
                        wall_thickness])
-                cube([lipo_width + 1, lipo_length + 1, lipo_thickness + 1],
+                cube([battery_pocket_x, battery_pocket_y, battery_pocket_z + 1],
                      center = true);
 
             // (Rail channels removed: rails are now additive features on side walls,
             //  added below in the outer union() – floor remains solid per spec)
 
             // ── Magnet pockets – CLOSED-position detent ─────────────────────────
+            // Body pocket at X = detent_x_offset + magnet_offset = +38 mm.
+            // The +6 mm offset creates an attractive X-component that pulls the
+            // tray into the closed stop.
             for (side = [-1, 1]) {
-                translate([detent_x_offset, side * magnet_y, -0.1])
+                translate([detent_x_offset + magnet_offset, side * magnet_y, -0.1])
                     magnet_pocket();
             }
 
             // ── Magnet pockets – OPEN-position detent ───────────────────────────
+            // Body pocket at X = detent_x_offset − slider_travel − magnet_offset
+            //                   = 32 − 65 − 6 = −39 mm.
             for (side = [-1, 1]) {
-                translate([detent_x_offset - slider_travel,
+                translate([detent_x_offset - slider_travel - magnet_offset,
                            side * magnet_y,
                            -0.1])
                     magnet_pocket();
@@ -205,13 +213,11 @@ module main_body() {
             }
         }
 
-        // ── Slider guide rails (additive, on interior side walls) ─────────────────
-        // Rectangular rails on the interior face of the outer long walls.
-        // Y = ±wall_inner_y = ±(phone_length/2 − wall_thickness) = ±57.8 mm.
-        // Rails protrude inward by rail_width = 3 mm; height = rail_height = 3 mm.
-        // Z = wall_thickness … wall_thickness + rail_height (above the floor).
-        // Solid bottom floor (Z = 0 … wall_thickness) is unmodified per spec.
-        // X = phone_width/2 − rail_length … phone_width/2  (+X insertion end).
+        // ── Slider guide rails (protrude BELOW the bottom face) ──────────────────
+        // Rails at Z = −rail_height … 0 hang below the exterior bottom face.
+        // In world coords (top_shell at world Z = tray_z = 8 mm):
+        //   Rail world Z = tray_z − rail_height … tray_z = 5.0 … 8.0 mm
+        //   Tray groove world Z = 4.65 … 8.0 mm → rail captured, 0.35 mm clearance ✓
         wall_inner_y_mb        = phone_length / 2 - wall_thickness;
         slider_rail_inner_y_mb = wall_inner_y_mb - rail_width;
         slider_rail_x_start_mb = phone_width / 2 - rail_length;
@@ -219,7 +225,7 @@ module main_body() {
             mirror([0, flip ? 1 : 0, 0])
                 translate([slider_rail_x_start_mb,
                            slider_rail_inner_y_mb,
-                           wall_thickness])
+                           -rail_height])
                     cube([rail_length, rail_width, rail_height]);
         }
     }
