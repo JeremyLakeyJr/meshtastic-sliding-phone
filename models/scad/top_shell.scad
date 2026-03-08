@@ -7,13 +7,26 @@
 // STRUCTURE
 // ─────────
 //   • Full exterior shell (95 × 120 × 19 mm, rounded corners)
-//   • Fully enclosed rectangular shell (95 × 120 × 19 mm) with rounded corners
 //   • Uniform exterior wall thickness (wall_thickness = 2.2 mm)
 //   • Solid bottom panel (no cut-throughs)
 //   • Internal cavity with rounded interior corners for print reliability
 //   • PCB mounting platform + 4 standoffs with blind screw holes
 //   • Evenly spaced internal support ribs tied to enclosure walls
-//   • Wall-attached component side rails for module support
+//   • Slider guide rails on interior side walls (Y = ±wall_inner_y)
+//       additive rectangular rails: rail_width × rail_height = 3 × 3 mm
+//       protrude inward from wall face; sit above the bottom floor surface
+//       one rail per interior side wall; length = rail_length = 70 mm
+//       positioned at the +X (insertion) end of the tray travel range
+//
+// SLIDER RAIL PLACEMENT
+// ─────────────────────
+//   Interior wall face : Y = ±(phone_length/2 − wall_thickness) = ±57.8 mm
+//   Rail protrudes inward by rail_width = 3 mm  →  rail spans ±54.8…57.8 mm
+//   Rail height (Z)    : rail_height = 3 mm, sitting above the floor surface
+//   Rail length (X)    : rail_length = 70 mm at the +X insertion end
+//   Rail length ≥ 70 % of tray width (95 mm)  →  73.7 % ✓
+//   Bottom floor (Z = 0 … wall_thickness) : solid, unmodified ✓
+//   Does NOT intersect PCB pocket (Y ≈ −1…45 mm) or battery pocket ✓
 //
 // VERTICAL CLEARANCE STACK (minimum 14 mm total)
 // ───────────────────────────────────────────────
@@ -43,9 +56,13 @@ module top_shell() {
     rib_iw = phone_width  - 2 * wall_thickness;     // interior width  (X)
     rib_il = phone_length - 2 * wall_thickness;     // interior length (Y)
     standoff_hole_depth = standoff_height - standoff_floor_thickness;
-    side_rail_w = wall_thickness;
-    side_rail_l = side_rail_length;
-    side_rail_h = side_rail_height;
+
+    // Slider rail geometry (per spec)
+    // Interior wall face at Y = ±wall_inner_y; rail protrudes inward by rail_width.
+    wall_inner_y        = phone_length / 2 - wall_thickness;  // 57.8 mm
+    slider_rail_inner_y = wall_inner_y - rail_width;          // 54.8 mm (inner edge)
+    // Rails span the +X insertion end, same X range as tray grooves.
+    slider_rail_x_start = phone_width / 2 - rail_length;      // −22.5 mm
 
     // PCB platform and standoff XY positions (Heltec V3/V4 mounting corners)
     standoff_positions = [
@@ -102,13 +119,27 @@ module top_shell() {
                 cube([rib_iw, rib_t, rib_h]);
         }
 
-        // ── Component side rails (module support, wall-attached) ──────────────
-        // Rails are short center segments to avoid overlapping reinforcement ribs.
-        for (side = [-1, 1]) {
-            translate([side * (rib_iw/2 - side_rail_w/2),
-                       -side_rail_l/2,
-                       wall_thickness])
-                cube([side_rail_w, side_rail_l, side_rail_h]);
+        // ── Slider guide rails (additive, on interior side walls) ─────────────
+        // Rectangular rails on the interior face of the outer long walls
+        // (Y = ±wall_inner_y = ±57.8 mm).  Rails protrude inward by rail_width
+        // (3 mm) and rise above the floor surface (Z = wall_thickness) by
+        // rail_height (3 mm).  The solid bottom floor (Z = 0 … wall_thickness)
+        // is not cut or modified.
+        //
+        // One rail per interior side wall (per spec):
+        //   +Y rail : Y = slider_rail_inner_y … wall_inner_y = 54.8 … 57.8 mm
+        //   −Y rail : Y = −wall_inner_y … −slider_rail_inner_y
+        //
+        // Rail length = rail_length = 70 mm ≥ 70 % of tray width (95 mm) ✓
+        // X range: slider_rail_x_start … phone_width/2 = −22.5 … +47.5 mm
+        //
+        // The matching tray grooves capture these rails; see keyboard_tray.scad.
+        for (flip = [false, true]) {
+            mirror([0, flip ? 1 : 0, 0])
+                translate([slider_rail_x_start,
+                           slider_rail_inner_y,
+                           wall_thickness])
+                    cube([rail_length, rail_width, rail_height]);
         }
     }
 }

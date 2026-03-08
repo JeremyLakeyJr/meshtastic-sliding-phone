@@ -6,31 +6,29 @@ Generates printable STL mesh files for all phone components using numpy-stl.
 Run this script to produce STL files without needing OpenSCAD installed.
 
 DESIGN (2-piece)
-  top_shell     – unified enclosure (display, PCB, battery, rails, ports)
-  keyboard_tray – sliding keyboard carriage (CardKB 88×54mm, dovetail runners, magnets)
+  top_shell     – unified enclosure (display, PCB, battery, slider rails, ports)
+  keyboard_tray – sliding keyboard carriage (CardKB 88×54mm, rail grooves, magnets)
   bottom_shell  – alias for keyboard_tray (2-piece naming convention)
 
-Mechanism: shortways (X-axis) magnetic-detent slider with captured dovetail rails.
+Mechanism: shortways (X-axis) magnetic-detent slider with wall-attached rails.
   • phone_width = 95 mm; slider_travel = 65 mm.
-  • Two parallel dovetail runners (rail_top_width=1.2mm narrow base,
-    rail_base_width=4mm wide cap, rail_height=3mm) on the keyboard-tray top face
-    slide inside matching dovetail grooves in the top-shell underside,
-    positioned at Y = ±RAIL_Y (±40 mm, spacing = 80 mm).
-    Runner length = RAIL_LENGTH = 70 mm (at +X insertion end); shorter runner
-    reduces cantilever flex at full extension (5 mm engagement at travel=65).
-  • Groove: narrow opening 1.9mm → widens to 4.7mm at rail_height depth,
-    plus CHANNEL_STANDOFF=2mm straight zone for passive ~3° typing angle.
+  • Two rectangular rails (RAIL_WIDTH=3mm wide, RAIL_HEIGHT=3mm tall) are
+    additive features on the interior side walls of the top shell at
+    Y = ±WALL_INNER_Y (±57.8 mm), protruding inward.  Rails run along the
+    X axis for RAIL_LENGTH = 70 mm at the +X insertion end.
+    Rail length = 73.7 % of tray width ≥ 70 % spec  ✓
+    Bottom floor (Z = 0 … WALL_THICKNESS) is solid and unmodified  ✓
+    Rails sit above the floor surface (Z = WALL_THICKNESS)  ✓
+    Rails do NOT intersect PCB pocket (Y ≈ −1…45 mm) or battery pocket  ✓
+  • Matching grooves in the tray capture the rails:
+      Groove width  = RAIL_WIDTH + 2 × RAIL_CLEARANCE = 3.7 mm
+      Groove depth  = RAIL_HEIGHT + RAIL_CLEARANCE     = 3.35 mm
   • Offset magnet detents (MAGNET_OFFSET = 6 mm):
       Tray pockets at tray-local X = DETENT_X_OFFSET = +32 mm.
       Body closed pocket at body-X = DETENT_X_OFFSET + MAGNET_OFFSET = +38 mm.
       Body open   pocket at body-X = DETENT_X_OFFSET − SLIDER_TRAVEL
                                      − MAGNET_OFFSET = −39 mm.
-    The offset creates an X-component of magnetic force that guides the tray
-    into position rather than opposing mid-travel motion.
   • Magnet pocket: 10.3 mm bore × 3.6 mm deep, 0.6 mm retention lip.
-  • Stop blocks (2 mm tall, groove-opening-width wide) inside the rail grooves
-    at body X ≈ −15.5 mm prevent accidental removal.  A matching stop_cutout
-    (2.5 mm) at the runner −X tip allows initial assembly from the +X entry end.
   • Battery pocket: 71×51×9 mm (MakerFocus 3000 mAh, integrated in top shell).
   • Battery retention clips: BATTERY_CLIP_HEIGHT = 1.5 mm at pocket ±Y edges.
   • USB-C cutout: 11×4 mm.  Standoffs: 4×M2, height 4 mm, diameter 5 mm.
@@ -108,40 +106,41 @@ KEYBOARD_HEIGHT_CLEARANCE = 10.0  # min internal Z clearance
 SLIDER_TRAVEL    =  65.0
 KEYBOARD_TRAVEL  =  SLIDER_TRAVEL   # alias
 
-# --- Dovetail rail system (per spec) ---
-RAIL_BASE_WIDTH  =  4.0   # runner cap width (wide, free end) – per spec
-RAIL_TOP_WIDTH   =  1.2   # runner base width (narrow, tray-attachment) – per spec
-RAIL_HEIGHT      =  3.0   # runner height (Z) – per spec
-RAIL_ANGLE       = 45.0   # reference dovetail side angle – per spec
-RAIL_SPACING     = 80.0   # centre-to-centre Y spacing between rails – per spec
-RAIL_Y           = RAIL_SPACING / 2   # ±40.0 mm
+# --- Rectangular slider rail system (per spec) ---
+# Additive rails on interior side walls of the top shell.
+# One rail per interior long wall (Y = ±WALL_INNER_Y), protruding inward.
+RAIL_WIDTH       =  3.0   # rail protrusion from wall face (Y) – per spec
+RAIL_HEIGHT      =  3.0   # rail height above floor (Z) – per spec
+RAIL_CLEARANCE   =  0.35  # per-side clearance between rail and groove – per spec
+RAIL_LENGTH      = 70.0   # rail length along X – per spec (≥ 70 % of tray width)
 
-RAIL_CLEARANCE   =  0.35  # per-side clearance – per spec
-CLEARANCE_START  =  0.30  # start of travel
-CLEARANCE_MID    =  0.35  # mid-travel nominal
-CLEARANCE_END    =  0.45  # end of travel (open)
+# Derived rail / groove positions
+WALL_INNER_Y     = PHONE_LENGTH / 2 - WALL_THICKNESS  # 57.8 mm – interior wall face
+RAIL_INNER_Y     = WALL_INNER_Y - RAIL_WIDTH           # 54.8 mm – rail inner edge
+RUNNER_X_START   = PHONE_WIDTH / 2 - RAIL_LENGTH       # −22.5 mm – +X insertion end
 
-RAIL_ENTRY_CHAMFER = 1.0  # per spec (was 0.6 mm)
-RAIL_CHAMFER     = RAIL_ENTRY_CHAMFER
+# Derived groove dimensions (tray captures the top-shell rails)
+GROOVE_WIDTH     = RAIL_WIDTH  + 2 * RAIL_CLEARANCE    # 3.7 mm
+GROOVE_DEPTH     = RAIL_HEIGHT + RAIL_CLEARANCE         # 3.35 mm
+GROOVE_INNER_Y   = WALL_INNER_Y - RAIL_WIDTH - RAIL_CLEARANCE  # 54.45 mm
+GROOVE_OUTER_Y   = WALL_INNER_Y + RAIL_CLEARANCE               # 58.15 mm
 
-# Rail length: runners and grooves are RAIL_LENGTH mm (< full tray width).
-# Shorter runner reduces cantilever flex at full extension.
-RAIL_LENGTH      = 70.0   # per spec
+# Legacy parameters kept for utility functions / backward compat
+RAIL_BASE_WIDTH  =  4.0   # legacy dovetail runner cap width
+RAIL_TOP_WIDTH   =  1.2   # legacy dovetail runner base width
+RAIL_ANGLE       = 45.0   # legacy reference angle
+RAIL_SPACING     = 80.0   # legacy centre-to-centre Y spacing
+RAIL_Y           = RAIL_SPACING / 2   # legacy ±40.0 mm
+CHANNEL_STANDOFF =  2.0   # legacy groove standoff
+RAIL_CHANNEL_W     = RAIL_TOP_WIDTH  + 2 * RAIL_CLEARANCE   # 1.9 mm legacy
+RAIL_CHANNEL_INNER = RAIL_BASE_WIDTH + 2 * RAIL_CLEARANCE   # 4.7 mm legacy
+RAIL_CHANNEL_H     = RAIL_HEIGHT + CHANNEL_STANDOFF          # 5.0 mm legacy
 
-CHANNEL_STANDOFF =  2.0   # extra groove depth beyond rail_height (passive tilt)
-
-# Derived groove dimensions
-RAIL_CHANNEL_W     = RAIL_TOP_WIDTH  + 2 * RAIL_CLEARANCE   # 1.9 mm – groove opening
-RAIL_CHANNEL_INNER = RAIL_BASE_WIDTH + 2 * RAIL_CLEARANCE   # 4.7 mm – groove inner
-RAIL_CHANNEL_H     = RAIL_HEIGHT + CHANNEL_STANDOFF          # 5.0 mm – total groove depth
-
-# Pop-up (passive via CHANNEL_STANDOFF)
-RAIL_SLOPE_ANGLE    =  3.0   # target typing angle degrees
-MAXIMUM_LIFT_HEIGHT =  3.0   # maximum tray lift mm
-
-# Stop / detent bumps
-STOP_BUMP_HEIGHT =  1.2   # per spec
-DETENT_HEIGHT    =  0.3   # per spec
+# Pop-up / detent
+RAIL_SLOPE_ANGLE    =  3.0
+MAXIMUM_LIFT_HEIGHT =  3.0
+STOP_BUMP_HEIGHT =  1.2
+DETENT_HEIGHT    =  0.3
 
 # Wire routing tunnel
 WIRE_TUNNEL_WIDTH  =  6.0   # per spec
@@ -280,14 +279,15 @@ def _make_stl(verts, faces):
 # ---------------------------------------------------------------------------
 
 def generate_top_shell():
-    """Unified top enclosure: display face, PCB bay, battery pocket, dovetail rail grooves.
+    """Unified top enclosure: display face, PCB bay, battery pocket, slider rails.
 
-    95 × 120 × 19 mm.  Dovetail grooves (RAIL_LENGTH=70 mm) at Y = ±RAIL_Y (±40 mm)
-    with stop blocks.  Battery pocket 71×51×9 mm.
-    Offset magnet detents: body closed at X=+38 mm, body open at X=−39 mm.
+    95 × 120 × 19 mm.  Rectangular slider rails (RAIL_WIDTH=3mm, RAIL_HEIGHT=3mm)
+    on the interior side walls at Y = ±WALL_INNER_Y (±57.8 mm), protruding inward.
+    Rails are additive features – the solid bottom floor is not cut.
+    Battery pocket 71×51×9 mm.  Magnet detents at X=+38/−39 mm.
     USB-C 11×4 mm.  Standoffs 4 mm tall, 5 mm dia (M2).
     PCB platform 2 mm thick.  Battery clips 1.5 mm.  Lightening pockets 1.5 mm.
-    Wire routing groove 6×2 mm alongside +Y rail.
+    Wire routing groove 6×2 mm alongside +Y wire path.
     """
     parts = []
     w, l, d = PHONE_WIDTH, PHONE_LENGTH, BODY_Z
@@ -314,25 +314,20 @@ def generate_top_shell():
                                 WALL_THICKNESS, iw, WALL_THICKNESS,
                                 d - WALL_THICKNESS))
 
-    # Floor (provides material for dovetail grooves and lightening pockets)
+    # Floor – solid continuous plane, unmodified (per spec)
     parts.append(_box_triangles(0, 0, 0, w, l, WALL_THICKNESS))
 
-    # Dovetail rail groove representations at Y = ±RAIL_Y
-    # Groove length = RAIL_LENGTH = 70 mm, starting at +X end (body-X = +w/2)
-    groove_repr_w = RAIL_CHANNEL_INNER  # represent as inner width for visibility
-    groove_x_start = w / 2 - RAIL_LENGTH
-    groove_cx = groove_x_start + RAIL_LENGTH / 2
+    # Slider guide rails on interior side walls (additive, per spec)
+    # Rails: RAIL_WIDTH × RAIL_HEIGHT = 3 × 3 mm, protruding inward from Y = ±WALL_INNER_Y
+    # Z = WALL_THICKNESS … WALL_THICKNESS + RAIL_HEIGHT (above the floor surface)
+    # X = RUNNER_X_START … +w/2 = −22.5 … +47.5 mm (RAIL_LENGTH = 70 mm)
+    # One rail per interior side wall; does not intersect PCB or battery pockets.
+    rail_cx = RUNNER_X_START + RAIL_LENGTH / 2  # X centre of rail
     for side in [-1, 1]:
-        cy = side * RAIL_Y
-        parts.append(_box_triangles(groove_cx, cy, 0, RAIL_LENGTH, groove_repr_w,
-                                    RAIL_CHANNEL_H))
-
-    # Stop blocks inside grooves at body X = STOP_BLOCK_POS_X (≈ −15.5 mm)
-    for side in [-1, 1]:
-        cy = side * RAIL_Y
-        parts.append(_box_triangles(STOP_BLOCK_POS_X - STOP_BLOCK_DEPTH / 2, cy,
-                                    0, STOP_BLOCK_DEPTH,
-                                    RAIL_CHANNEL_W, STOP_BLOCK_HEIGHT))
+        # Rail centre Y = side * (WALL_INNER_Y - RAIL_WIDTH/2)
+        cy = side * (WALL_INNER_Y - RAIL_WIDTH / 2)
+        parts.append(_box_triangles(rail_cx, cy, WALL_THICKNESS,
+                                    RAIL_LENGTH, RAIL_WIDTH, RAIL_HEIGHT))
 
     # Battery pocket representation (71 × 51 × 9 mm, per spec)
     bat_cy = l / 2 - WALL_THICKNESS - BATTERY_POCKET_Y / 2 - 5
@@ -408,15 +403,15 @@ def generate_main_body():
 
 
 def generate_keyboard_tray():
-    """Sliding keyboard tray (bottom shell): CardKB pocket, dovetail runners, magnets.
+    """Sliding keyboard tray (bottom shell): CardKB pocket, rail grooves, magnets.
 
     95 × 120 × 8 mm.  CardKB pocket 89×55 mm (width×height), 8 mm deep.
-    Dovetail runners: base 1.2 mm, cap 4.0 mm, height 3.0 mm at Y = ±40 mm.
-    Runner length = RAIL_LENGTH = 70 mm, positioned at +X (insertion) end.
-    Tray magnets: 10 mm × 4 mm at ±20 mm Y, tray-local X = +32 mm
-      (offset 6 mm from body pockets for guided detent).
-    Stop cutouts at runner -X tips (2.5 mm deep × groove_opening_w wide).
-    Wire routing groove: 6×2 mm alongside +Y rail.
+    Rail grooves: GROOVE_WIDTH=3.7 mm, GROOVE_DEPTH=3.35 mm at Y = ±WALL_INNER_Y.
+    Groove length = RAIL_LENGTH = 70 mm, positioned at +X (insertion) end.
+    Each groove is formed by a guide block (fills hollow interior) plus a
+    clearance cut into the outer side wall.  No runners on the tray face.
+    Tray magnets: 10 mm × 4 mm at ±20 mm Y, tray-local X = +32 mm.
+    Wire routing groove: 6×2 mm alongside +Y wire path.
     """
     parts = []
     w, l, d = PHONE_WIDTH, PHONE_LENGTH, TRAY_Z
@@ -440,20 +435,26 @@ def generate_keyboard_tray():
                                 WALL_THICKNESS, iw, WALL_THICKNESS,
                                 d - WALL_THICKNESS))
 
-    # Dual dovetail runners on top face at Y = ±RAIL_Y
-    # Runner length = RAIL_LENGTH = 70 mm, at +X end of tray.
-    # runner_x_start = w/2 - RAIL_LENGTH (tray-local X)
-    runner_x_start = w / 2 - RAIL_LENGTH
-    runner_cx = runner_x_start + RAIL_LENGTH / 2   # centre of runner in X
+    # Rail guide blocks (additive) with groove cutouts
+    # Guide block fills the hollow interior at the side wall inner face.
+    # Block: Y = GROOVE_INNER_Y … WALL_INNER_Y, Z = WALL_THICKNESS … d
+    # After subtracting the groove interior (upper GROOVE_DEPTH), the block provides:
+    #   groove floor : Z = WALL_THICKNESS … d - GROOVE_DEPTH
+    #   groove channel: Z = d - GROOVE_DEPTH … d  (open, captures the rail)
+    # Block centre Y: (GROOVE_INNER_Y + WALL_INNER_Y) / 2
+    groove_block_w = WALL_INNER_Y - GROOVE_INNER_Y   # = RAIL_WIDTH + RAIL_CLEARANCE
+    groove_block_h = d - WALL_THICKNESS               # full interior height
+    groove_block_cx = RUNNER_X_START + RAIL_LENGTH / 2
+    groove_floor_h = groove_block_h - GROOVE_DEPTH    # solid portion height
+
     for side in [-1, 1]:
-        cy = side * RAIL_Y
-        # Represent runner as a trapezoidal prism: use average width for box approx
-        # Base part (narrow, at tray face)
-        parts.append(_box_triangles(runner_cx, cy, d,
-                                    RAIL_LENGTH, RAIL_TOP_WIDTH, RAIL_HEIGHT / 2))
-        # Cap part (wide, at free end)
-        parts.append(_box_triangles(runner_cx, cy, d + RAIL_HEIGHT / 2,
-                                    RAIL_LENGTH, RAIL_BASE_WIDTH, RAIL_HEIGHT / 2))
+        block_cy = side * (GROOVE_INNER_Y + groove_block_w / 2)
+        # Guide block floor (solid portion below groove)
+        if groove_floor_h > 0:
+            parts.append(_box_triangles(groove_block_cx, block_cy,
+                                        WALL_THICKNESS,
+                                        RAIL_LENGTH, groove_block_w, groove_floor_h))
+        # (The upper groove channel portion is hollow – no geometry added here)
 
     # CardKB pocket representation (walls around the pocket area)
     # Pocket: 55 mm (X) × 89 mm (Y), 8 mm deep
@@ -476,7 +477,7 @@ def generate_keyboard_tray():
                                          d - MAGNET_POCKET_H,
                                          MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 16))
 
-    # Wire routing groove alongside +Y rail (6×2 mm)
+    # Wire routing groove alongside +Y wire path (6×2 mm)
     wire_cy = RAIL_Y + RAIL_BASE_WIDTH / 2 + RAIL_CLEARANCE + 0.5 + WIRE_TUNNEL_WIDTH / 2
     parts.append(_box_triangles(0, wire_cy, d - WIRE_TUNNEL_HEIGHT,
                                 w, WIRE_TUNNEL_WIDTH, WIRE_TUNNEL_HEIGHT))
