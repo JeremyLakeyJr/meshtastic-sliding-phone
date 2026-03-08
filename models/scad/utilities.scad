@@ -77,7 +77,7 @@ module grille_pattern(cols, rows, slot_w, slot_h, spacing, slot_r) {
 // Snap ramp      (−X end): a shallow floor crest in the last snap_ramp_x mm
 //                          makes the tray self-finish into the open position.
 //
-// Standoff = rail_channel_h − rail_h = 3.5 − 2.5 = 1.0 mm
+// Standoff = rail_channel_h − rail_h = 4.5 − 3.5 = 1.0 mm
 // ============================================================================
 
 // A single T-shaped runner – placed on the tray top face, protruding up.

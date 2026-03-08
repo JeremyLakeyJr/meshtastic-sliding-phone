@@ -80,7 +80,7 @@ keyboard_travel  = slider_travel;  // Backward-compatible alias
 // wider lower section for the lip.  The lip captures the runner vertically so
 // the keyboard tray cannot tilt or lift away from the phone body.
 //
-//   Standoff = rail_channel_h − rail_h = 3.5 − 2.5 = 1.0 mm
+//   Standoff = rail_channel_h − rail_h = 4.5 − 3.5 = 1.0 mm
 //
 // The stem void ends flush with the −X face of the main body, providing
 // natural stop walls that intercept the keyboard-tray over-travel tabs.
@@ -88,13 +88,13 @@ keyboard_travel  = slider_travel;  // Backward-compatible alias
 // A rail_entry_chamfer flares the lip void at the +X (insertion) end.
 // A snap_ramp near the −X end assists the "self-finish" open action.
 // ============================================================================
-rail_w          =  4.0;  // Runner stem width   (Y direction)
-rail_h          =  2.5;  // Runner height       (Z, protrudes above tray top face)
+rail_w          =  6.0;  // Runner stem width   (Y direction)
+rail_h          =  3.5;  // Runner height       (Z, protrudes above tray top face)
 rail_y          = 40.0;  // ±Y distance from phone centreline to runner centre
 
 // Captured-lip geometry
 rail_lip_h      =  1.0;  // Height of T-rail lip cap (top portion of runner)
-rail_lip_w      =  1.5;  // Width of lip overhang each side beyond stem (Y)
+rail_lip_w      =  2.0;  // Width of lip overhang each side beyond stem (Y)
 
 // Printing-tolerance clearances for the rail
 rail_clearance  =  0.35; // Per-side clearance between runner and channel
@@ -104,8 +104,8 @@ rail_entry_chamfer = 0.6;
 rail_chamfer       = rail_entry_chamfer;  // Alias per design specification
 
 // Channel dimensions derived from rail geometry
-rail_channel_w  = rail_w  + 2 * rail_clearance;  // 4.7 mm  – stem void width
-rail_channel_h  = rail_h  + 1.0;                 // 3.5 mm  – 1 mm standoff
+rail_channel_w  = rail_w  + 2 * rail_clearance;  // 6.7 mm  – stem void width
+rail_channel_h  = rail_h  + 1.0;                 // 4.5 mm  – 1 mm standoff
 rail_height     = rail_channel_h;                 // Alias per design specification
 
 // --- Snap-ramp geometry (auto-finish open action, last 5 mm of travel) ---
