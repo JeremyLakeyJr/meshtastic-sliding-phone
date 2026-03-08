@@ -154,16 +154,16 @@ module wire_routing_groove(length) {
 // Bore = magnet_diameter = 10.3 mm (0.15 mm per-side clearance from 10 mm
 // physical magnet; FDM tolerance allows easy insertion).
 //
-// Retention lip: the pocket entrance (top 0.5 mm = magnet_lip deep) is
-// narrowed to (magnet_diameter − 2 × magnet_lip) = 9.3 mm.  The 10 mm magnet
+// Retention lip: the pocket entrance (top 0.6 mm = magnet_lip deep) is
+// narrowed to (magnet_diameter − 2 × magnet_lip) = 9.1 mm.  The 10 mm magnet
 // is pressed past this lip — the FDM wall deflects slightly and springs back,
 // locking the magnet in place.
 //
-// Pocket depth = magnet_depth = 4.2 mm, leaving the magnet 0.2 mm recessed.
+// Pocket depth = magnet_depth = 3.6 mm, leaving the magnet 0.4 mm proud.
 // ============================================================================
 module magnet_pocket() {
-    retention_lip_d = magnet_diameter - 2 * magnet_lip;  // 9.3 mm – snap-fit entrance
-    lip_depth       = magnet_lip;                         // 0.5 mm retention zone
+    retention_lip_d = magnet_diameter - 2 * magnet_lip;  // 9.1 mm – snap-fit entrance
+    lip_depth       = magnet_lip;                         // 0.6 mm retention zone
 
     // Retention lip zone (narrow entrance)
     cylinder(h = lip_depth + 0.1, d = retention_lip_d);
