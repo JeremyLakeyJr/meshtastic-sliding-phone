@@ -69,8 +69,8 @@ pcb_clearance   =  9;    // Component height above PCB
 
 // --- PCB standoffs (M2 screws, Heltec V3/V4) ---
 standoff_height   = 4.0;  // Standoff height – per spec
-standoff_diameter = 5.0;  // Standoff outer diameter – per spec
-screw_hole_d      = 2.2;  // M2 screw hole diameter – per spec
+standoff_diameter = 6.0;  // Standoff outer diameter (~6 mm)
+screw_hole_d      = 3.0;  // Screw clearance hole (~3 mm)
 screw_post_d      = standoff_diameter;   // Alias
 screw_post_h      = standoff_height;     // Alias
 
