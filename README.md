@@ -34,6 +34,12 @@ A 3D-printable sliding phone enclosure for **Meshtastic** mesh networking device
 - **M2 screw posts** for secure PCB mounting
 - **Fully parametric** — all dimensions easily adjustable
 
+## Improved CAD Generation Prompt
+
+Use this prompt when generating enclosure concepts with AI CAD tools:
+
+> Create a fully parametric, 3D-printable electronics enclosure optimized for FDM printing. Model separate printable parts (main shell, sliding tray, and mounting features), expose key dimensions as editable parameters (PCB size, battery size, wall thickness, clearances, and travel), and enforce print-safe geometry (minimum 2 mm walls, filleted/chamfered transitions, no unsupported overhangs beyond ~45°, and practical assembly tolerances). Include internal standoffs, cable-routing channels, ventilation, fastener or snap-fit options, and clear support for iterative dimension tuning without rewriting core geometry.
+
 ## Project Structure
 
 ```
