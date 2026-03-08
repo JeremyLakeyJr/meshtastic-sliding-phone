@@ -5,17 +5,22 @@
 // visualisation of the shortways magnetic-detent slider mechanism.
 //
 // PARTS
-//   main_body     – unified enclosure (display, PCB, battery, rails, ports)
-//   keyboard_tray – sliding component (CardKB, T-runners, magnets)
+//   top_shell     – unified enclosure (display, PCB, battery, rails, ports)
+//   keyboard_tray – sliding component (CardKB 88×54 mm, T-runners, magnets)
 //
-// The keyboard tray slides in the −X direction (shortways, along the 74 mm
+// The keyboard tray slides in the −X direction (shortways, along the 95 mm
 // short axis) along two parallel T-slot captured-lip rail channels on the
-// main-body underside.  Neodymium 5 mm × 2 mm disc magnets snap the tray
-// into the closed (travel = 0) and open (travel = slider_travel = 35 mm)
-// positions.  Holding the phone in landscape (120 mm wide, 74 mm tall) the
-// keyboard slides downward — exactly like a Nokia N900.
+// top-shell underside.  Neodymium 10 mm × 4 mm disc magnets snap the tray
+// into the closed (travel = 0) and open (travel = slider_travel = 65 mm)
+// positions.  Holding the phone in landscape (120 mm wide, 95 mm tall) the
+// keyboard slides downward — Nokia N900-style.
 //
-// Not intended for printing — use main_body.scad and keyboard_tray.scad.
+// SLIDER TRAVEL = 65 mm → exposes 65 mm of tray area (≥ 60 mm spec) ✓
+// RAIL ENGAGEMENT at full extension = phone_width − slider_travel = 30 mm ✓
+// MAGNET POCKETS: 10.3 mm bore × 4.2 mm deep, 0.5 mm retention lip
+// STOP BLOCKS: 2 mm tall inside channels at body X ≈ −15.5 mm
+//
+// Not intended for printing — use top_shell.scad and keyboard_tray.scad.
 //
 // Usage:
 //   openscad assembly.scad
@@ -25,7 +30,7 @@
 
 include <parameters.scad>
 use <utilities.scad>
-use <main_body.scad>
+use <top_shell.scad>
 use <keyboard_tray.scad>
 use <antenna_mount.scad>
 
@@ -38,14 +43,15 @@ slide_position = exploded ? 0.65 : 0;
 slide_offset   = slide_position * slider_travel;   // tray moves in −X
 
 // --- Colours for visualisation ---
-color_body    = [0.18, 0.18, 0.18, 0.88];   // near-black main body
+color_body    = [0.18, 0.18, 0.18, 0.88];   // near-black top shell
 color_tray    = [0.15, 0.30, 0.48, 0.92];   // blue keyboard tray
 color_antenna = [0.70, 0.70, 0.18, 0.90];   // gold antenna
+color_magnet  = [0.75, 0.20, 0.20, 0.95];   // red magnet indicators
 
 // ── Stack from bottom to top in assembled Z ──────────────────────────────
 // Z = 0                 : bottom of keyboard tray
-// Z = tray_z            : tray top face / main-body bottom face interface
-// Z = tray_z + body_z   : top of main body (display face)
+// Z = tray_z            : tray top face / top-shell bottom face interface
+// Z = tray_z + body_z   : top of top shell (display face)
 // ─────────────────────────────────────────────────────────────────────────
 
 // --- Keyboard tray (slides in −X; at Z = 0) ---
@@ -53,12 +59,12 @@ color(color_tray)
     translate([-slide_offset, 0, -explode_gap * 0.5])
         keyboard_tray();
 
-// --- Main body (stationary; at Z = tray_z) ---
+// --- Top shell (stationary; at Z = tray_z) ---
 color(color_body)
     translate([0, 0, tray_z + explode_gap])
-        main_body();
+        top_shell();
 
-// --- Antenna mount (top-right edge of main body) ---
+// --- Antenna mount (top-right edge of top shell) ---
 color(color_antenna)
     translate([phone_width/2 - 12,
                phone_length/2 + explode_gap * 0.3,
@@ -66,12 +72,41 @@ color(color_antenna)
         rotate([90, 0, 0])
             antenna_mount();
 
+// --- Magnet position indicators (visual reference only, not printed) ---
+if (exploded) {
+    // Closed-snap magnets in top shell (body bottom face)
+    for (side = [-1, 1]) {
+        color(color_magnet)
+            translate([detent_x_offset,
+                       side * magnet_y,
+                       tray_z + explode_gap - magnet_depth])
+                cylinder(h = magnet_depth, d = magnet_d);
+    }
+    // Open-snap magnets in top shell
+    for (side = [-1, 1]) {
+        color(color_magnet)
+            translate([detent_x_offset - slider_travel,
+                       side * magnet_y,
+                       tray_z + explode_gap - magnet_depth])
+                cylinder(h = magnet_depth, d = magnet_d);
+    }
+    // Tray magnets (on tray top face, moved with tray)
+    for (side = [-1, 1]) {
+        color(color_magnet)
+            translate([detent_x_offset - slide_offset,
+                       side * magnet_y,
+                       tray_z - magnet_depth - explode_gap * 0.5])
+                cylinder(h = magnet_depth, d = magnet_d);
+    }
+}
+
 if (exploded) {
     translate([0, 0, phone_thickness + 2 * explode_gap + 8])
         linear_extrude(height = 0.5)
             text("Meshtastic Sliding Phone", size = 6, halign = "center");
     translate([0, 0, phone_thickness + 2 * explode_gap + 2])
         linear_extrude(height = 0.5)
-            text("2-piece design · main_body + keyboard_tray · 5 mm magnetic detents · snap-open ramp",
-                 size = 3.2, halign = "center");
+            text(str("2-piece · top_shell + keyboard_tray · 10mm×4mm magnets · ",
+                     slider_travel, "mm travel · 30mm rail engagement"),
+                 size = 3.0, halign = "center");
 }

@@ -53,54 +53,56 @@ module grille_pattern(cols, rows, slot_w, slot_h, spacing, slot_r) {
 // ============================================================================
 // The keyboard tray has two parallel T-shaped runners on its top face.  Each
 // runner has a narrow rectangular stem and a wider lip cap at the top.  The
-// runners slide inside matching T-slot channels in the main-body underside,
+// runners slide inside matching T-slot channels in the top-shell underside,
 // which constrains front/back (Y-axis) drift AND prevents vertical (Z-axis)
-// tilt so the tray cannot separate from the body mid-slide.
+// lift so the tray cannot separate from the body mid-slide.
 //
 // Rail geometry (cross-section, Y–Z plane):
 //
-//   ┌───────────────────────┐  ← lip cap  (rail_w + 2×rail_lip_w wide, rail_lip_h tall)
-//   └──────┐         ┌──────┘
-//          │  stem   │         (rail_w wide, rail_h − rail_lip_h tall)
-//          └─────────┘
+//   ┌─────────────────┐  ← lip cap  (rail_w + 2×rail_lip_w wide, rail_lip_h tall)
+//   └───┐       ┌─────┘
+//       │ stem  │           (rail_w wide, rail_h − rail_lip_h tall)
+//       └───────┘
+//
+//   Parameters (per spec):
+//     rail_width   = 3 mm   (rail_w)
+//     rail_height  = 2 mm   (rail_h)
+//     clearance    = 0.35 mm (rail_clearance per side)
 //
 // Channel T-slot (wider at the base where the lip sits, narrower above):
 //
 //   ┌─────┐                ┌─────┐  ← shell body (solid)
-//   │     └────────────────┘     │  ← stem void (rail_channel_w wide)
-//   └─────────────────────────────┘  ← lip void  (rail_channel_w + 2×rail_lip_w wide)
+//   │     └────────────────┘     │  ← stem void (rail_channel_w = 3.7 mm wide)
+//   └─────────────────────────────┘  ← lip void
 //
-// The stem void ends FLUSH with the −X face of the main body.  Shell material
-// at Y positions outside the stem void acts as natural stop walls.
+// Standoff = rail_channel_h − rail_h = 4.5 − 2.0 = 2.5 mm
+// (generous clearance accommodates the slight passive typing angle at
+//  full extension; see typing_angle in parameters.scad)
 //
-// Entry chamfer  (+X end): flares the lip void for smooth runner insertion.
-// Snap ramp      (−X end): a shallow floor crest in the last snap_ramp_x mm
-//                          makes the tray self-finish into the open position.
-//
-// Standoff = rail_channel_h − rail_h = 4.5 − 3.5 = 1.0 mm
+// Entry chamfer (+X end): flares the lip void for smooth runner insertion.
+// Snap ramp     (−X end): a shallow floor crest in the last snap_ramp_x mm
+//                         makes the tray self-finish into the open position.
 // ============================================================================
 
 // A single T-shaped runner – placed on the tray top face, protruding up.
 //   length = X-axis extent of the runner
 module rail_runner(length) {
-    // Stem (lower portion – rail_w wide)
+    // Stem (lower portion – rail_w wide, rail_h − rail_lip_h tall)
     cube([length, rail_w, rail_h - rail_lip_h]);
-    // Lip cap (wider, sits at the top of the runner)
+    // Lip cap (wider, at the top of the stem)
     translate([0, -rail_lip_w, rail_h - rail_lip_h])
         cube([length, rail_w + 2 * rail_lip_w, rail_lip_h]);
 }
 
-// The T-slot void subtracted from the main-body underside to form one channel.
+// The T-slot void subtracted from the top-shell underside to form one channel.
 //   length = X-axis extent (pass phone_width)
 //
-// Lip void  : extends 1 mm past both X ends (clean open edges for insertion).
-// Stem void : starts 1 mm INSET from the −X end (flush with −X body face),
-//             extends 1 mm past the +X end.
-//             → body material outside the stem-void Y range acts as the
-//               natural stop wall for the keyboard-tray over-travel tabs.
+// Lip void  : extends 1 mm past both X ends for clean open edges.
+// Stem void : full X extent (lip-void-length), enabling the runner to slide
+//             freely along the entire channel.
 // Entry chamfer: flares the lip void at the +X end for smooth insertion.
-// Snap ramp    : a small floor crest in the last snap_ramp_x mm of the stem
-//               void makes the tray "snap" into the fully-open position.
+// Snap ramp    : a small floor crest in the last snap_ramp_x mm of travel
+//               makes the tray "snap" into the fully-open position.
 module rail_channel_void(length) {
     ch = rail_entry_chamfer;
 
@@ -108,27 +110,19 @@ module rail_channel_void(length) {
     translate([0, -rail_lip_w, 0])
         cube([length + 2, rail_channel_w + 2 * rail_lip_w, rail_lip_h]);
 
-    // Stem void (Z = rail_lip_h … rail_channel_h) – narrow,
-    // starts 1 mm inset so the −X body face remains for stop walls.
-    // Total X extent: from X=1 to X=length+2 (same as original plain channel).
-    // Split into two sections:
-    //   • Snap-ramp section: X=1 … ramp_start_x  (hull wedge, see below)
-    //   • Plain section:     X=ramp_start_x … length+2  (cube)
-    // Together they cover the full original extent with no gaps or overruns.
+    // Stem void (Z = rail_lip_h … rail_channel_h)
+    // Split into snap-ramp section (near −X) and plain section.
     ramp_start_x = 1 + snap_ramp_x;  // X = 6 mm from void origin
     translate([ramp_start_x, 0, rail_lip_h])
         cube([length + 2 - ramp_start_x, rail_channel_w,
               rail_channel_h - rail_lip_h]);
 
-    // Snap-ramp section: the stem void tapers from full height at
-    // x = ramp_start_x down to (rail_channel_h − snap_ramp_z) at x = 1,
-    // then back up slightly – approximated as a hull wedge.
-    // This creates a gentle crest that provides the "snap" feel.
+    // Snap-ramp section: gentle floor crest for the "snap" feel at open end
     hull() {
         // Near −X end: reduced void height (crest of ramp)
         translate([1, 0, rail_lip_h])
             cube([0.01, rail_channel_w, rail_channel_h - rail_lip_h - snap_ramp_z]);
-        // At ramp_start_x: full void height (merges with plain stem void)
+        // At ramp_start_x: full void height
         translate([ramp_start_x, 0, rail_lip_h])
             cube([0.01, rail_channel_w, rail_channel_h - rail_lip_h]);
     }
@@ -143,29 +137,30 @@ module rail_channel_void(length) {
 }
 
 // ============================================================================
-// Magnet-pocket module  (5 mm × 2 mm neodymium disc)
+// Magnet-pocket module  (10 mm × 4 mm neodymium disc)
 // ============================================================================
-// Cylindrical press-fit pocket for one neodymium disc magnet (5 mm × 2 mm).
-// Bore = magnet_diameter − magnet_press_fit (4.9 mm) → press-fit retention.
+// Cylindrical pocket for one 10 mm × 4 mm neodymium disc magnet.
 //
-// A shallow retention lip at the pocket entrance (magnet_offset mm narrower,
-// 0.5 mm deep) acts as a snap-in retainer: the magnet is pushed past the lip
-// and cannot back out under normal handling.
+// Bore = magnet_diameter = 10.3 mm (0.15 mm per-side clearance from 10 mm
+// physical magnet; FDM tolerance allows easy insertion).
 //
-// The pocket is 0.5 mm deeper than the magnet so the magnet sits 0.5 mm
-// below the face — this recess, combined with the 1 mm rail standoff, gives
-// a guaranteed 2 mm air gap between opposing magnet faces:
+// Retention lip: the pocket entrance (top 0.5 mm = magnet_lip deep) is
+// narrowed to (magnet_diameter − 2 × magnet_lip) = 9.3 mm.  The 10 mm magnet
+// is pressed past this lip — the FDM wall deflects slightly and springs back,
+// locking the magnet in place.
 //
-//   gap = rail_standoff + 2 × pocket_recess = 1.0 + 0.5 + 0.5 = 2.0 mm  ✓
+// Pocket depth = magnet_depth = 4.2 mm, leaving the magnet 0.2 mm recessed.
+// Air gap between opposing faces (body + tray) = 2 × 0.2 mm + 2.5 mm standoff
+//                                              = 2.9 mm  ✓  magnets never touch.
 // ============================================================================
 module magnet_pocket() {
-    retention_d = magnet_pocket_d - magnet_offset;  // 4.7 mm – narrow lip
-    retention_h = 0.5;                              // depth of retention lip zone
+    retention_lip_d = magnet_diameter - 2 * magnet_lip;  // 9.3 mm – snap-fit entrance
+    lip_depth       = magnet_lip;                         // 0.5 mm retention zone
 
-    // Retention lip (slightly under-bore at the pocket mouth)
-    cylinder(h = retention_h + 0.1, d = retention_d);
+    // Retention lip zone (narrow entrance)
+    cylinder(h = lip_depth + 0.1, d = retention_lip_d);
 
-    // Main pocket body (press-fit bore)
-    translate([0, 0, retention_h])
-        cylinder(h = magnet_pocket_h - retention_h + 0.1, d = magnet_pocket_d);
+    // Main pocket bore (full diameter)
+    translate([0, 0, lip_depth])
+        cylinder(h = magnet_depth - lip_depth + 0.1, d = magnet_diameter);
 }
