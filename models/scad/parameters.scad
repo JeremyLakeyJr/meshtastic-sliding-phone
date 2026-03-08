@@ -69,15 +69,16 @@ pcb_clearance   =  9;    // Component height above PCB
 
 // --- PCB standoffs (M2 screws, Heltec V3/V4) ---
 standoff_height   = 4.0;  // Standoff height – per spec
-standoff_diameter = 6.0;  // Standoff outer diameter (~6 mm)
-screw_hole_d      = 3.0;  // Screw clearance hole (~3 mm)
-standoff_floor_thickness = 0.8;  // Solid floor left beneath blind standoff hole
+standoff_diameter = 6.0;  // Standoff outer diameter sized for blind-hole strength
+screw_hole_d      = 3.0;  // Screw clearance hole (M3 clearance target) per requirement
+standoff_floor_thickness = 1.5;  // Thickness of solid floor beneath blind standoff hole
 screw_post_d      = standoff_diameter;   // Alias
 screw_post_h      = standoff_height;     // Alias
 
 // Internal side rails for module support along enclosure walls
 side_rail_length = 16;  // Rail length along Y
 side_rail_height = 3;   // Rail height above interior floor
+geom_epsilon = 0.1;     // Small overlap offset to prevent coincident-face artifacts
 
 // --- PCB mounting platform (structural floor reinforcement under Heltec board) ---
 platform_thickness = 2.0;  // Platform slab height above case floor – per spec

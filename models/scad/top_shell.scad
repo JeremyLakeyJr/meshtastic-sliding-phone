@@ -34,12 +34,15 @@ include <parameters.scad>
 use <utilities.scad>
 
 module top_shell() {
+    assert(standoff_floor_thickness < standoff_height,
+           "Blind standoff floor thickness must be less than standoff height");
+
     // Reinforcement rib dimensions (from parameters)
     rib_t  = rib_width;                             // 2.0 mm
     rib_h  = body_z - wall_thickness;               // floor-to-ceiling span inside cavity
     rib_iw = phone_width  - 2 * wall_thickness;     // interior width  (X)
     rib_il = phone_length - 2 * wall_thickness;     // interior length (Y)
-    standoff_hole_depth = max(standoff_height - standoff_floor_thickness, standoff_floor_thickness);
+    standoff_hole_depth = standoff_height - standoff_floor_thickness;
     side_rail_w = wall_thickness;
     side_rail_l = side_rail_length;
     side_rail_h = side_rail_height;
@@ -81,8 +84,9 @@ module top_shell() {
             translate([pos[0], pos[1], wall_thickness])
                 difference() {
                     cylinder(h = standoff_height, d = standoff_diameter);
-                    translate([0, 0, standoff_height - standoff_hole_depth])
-                        cylinder(h = standoff_hole_depth + 0.1, d = screw_hole_d);
+                    if (standoff_hole_depth > 0)
+                        translate([0, 0, standoff_floor_thickness])
+                            cylinder(h = standoff_hole_depth + geom_epsilon, d = screw_hole_d);
                 }
         }
 
