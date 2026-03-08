@@ -131,37 +131,43 @@ slider_travel    = 65;   // mm; fully exposes CardKB
 keyboard_travel  = slider_travel;  // Backward-compatible alias
 
 // ============================================================================
-// Parallel captured dovetail rail system
+// Parallel captured rectangular rail system
 // ============================================================================
-// Two trapezoidal dovetail runners on the keyboard-tray top face protrude
-// upward into matching dovetail grooves cut into the top-shell underside.
-// Runners run along the X axis at Y = ±rail_y from the phone centreline.
+// Two rectangular rails are additive features on the interior side walls of
+// the top shell.  One rail along each long interior wall (Y = ±wall_inner_y),
+// protruding inward by rail_width and running along the X axis for rail_length.
 //
-// Runner cross-section (Y–Z plane):
-//   Narrow base (rail_top_width  = 1.2 mm) at tray face (Z = tray_z)
-//   Wide cap   (rail_base_width  = 4.0 mm) at free end (Z = tray_z + rail_height)
-//   Height: rail_height = 3.0 mm
+// Rail cross-section (Y–Z plane):
+//   Width  : rail_width  = 3.0 mm (Y protrusion from the interior wall face)
+//   Height : rail_height = 3.0 mm (Z extent above the interior floor surface)
 //
-// Groove cross-section in top shell:
-//   Opening (Z = 0, shell face): rail_top_width  + 2×rail_clearance = 1.9 mm  (narrow)
-//   Inner   (Z = rail_height):   rail_base_width + 2×rail_clearance = 4.7 mm  (wide)
-//   Standoff zone (Z = rail_height … rail_height+channel_standoff): straight 4.7 mm
-//   Total groove depth = rail_height + channel_standoff = 5.0 mm
+// The rails are additive geometry – they do NOT cut into the bottom floor.
+// The bottom floor (Z = 0 … wall_thickness) remains a continuous solid plane.
 //
-// Capture: runner cap (4 mm) > groove opening (1.9 mm) → tray cannot separate
-// Passive typing angle at full extension ≈ atan(channel_standoff/30 mm) ≈ 3.8° ≈ 3°
+// Matching grooves in the keyboard tray capture the rails:
+//   Groove width  = rail_width  + 2 × rail_clearance = 3.7 mm
+//   Groove depth  = rail_height + rail_clearance      = 3.35 mm
 //
-// Rail spacing: rail_spacing = 80 mm → rail_y = ±40 mm (prevents rotational tilt)
+// Rail placement:
+//   Y = ±(phone_length/2 − wall_thickness)  (one per interior side wall)
+//   X = phone_width/2 − rail_length … phone_width/2   (≥ 70 % of tray width)
+//   Grooves run the same X range on the tray
+//
+// Rail length = 70 mm = 73.7 % of tray width (95 mm) ≥ 70 % spec ✓
+// Rails do not intersect the PCB pocket (Y ≈ −1…45 mm) or battery pocket ✓
 // ============================================================================
-rail_base_width = 4.0;   // Runner cap width (wide, free end) – per spec
-rail_top_width  = 1.2;   // Runner base width (narrow, tray-attachment) – per spec
-rail_height     = 3.0;   // Runner height (Z) – per spec
-rail_angle      = 45.0;  // Reference dovetail side angle (degrees) – per spec
-rail_spacing    = 80.0;  // Centre-to-centre Y distance between rails – per spec
-rail_y          = rail_spacing / 2;  // ±Y from phone centreline = 40.0 mm
+rail_base_width = 4.0;   // Legacy dovetail runner cap width – kept for utilities.scad
+rail_top_width  = 1.2;   // Legacy dovetail runner base width – kept for utilities.scad
+rail_height     = 3.0;   // Rail height (Z) – per spec
+rail_angle      = 45.0;  // Legacy reference angle – kept for utilities.scad
+rail_spacing    = 80.0;  // Legacy centre-to-centre Y spacing – kept for utilities.scad
+rail_y          = rail_spacing / 2;  // Legacy ±Y = 40.0 mm – kept for utilities.scad
+
+// New rectangular rail dimensions (per spec)
+rail_width      = 3.0;   // Rail protrusion width from interior wall (Y) – per spec
 
 // Printing-tolerance clearance for the rail
-rail_clearance  = 0.35;  // Per-side clearance between runner and groove – per spec
+rail_clearance  = 0.35;  // Per-side clearance between rail and tray groove – per spec
 
 // Progressive clearance values (FDM tolerance compensation along travel)
 clearance_start = 0.30;  // Start of travel (insertion / closed end)

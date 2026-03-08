@@ -10,9 +10,10 @@
 //   • Display / OLED viewport cutout with countersink on the top face
 //   • Electronics cavity accessible from the bottom (open rail face)
 //   • Dedicated battery recess inside the cavity (battery cover integrated)
-//   • Two T-slot rail CHANNELS on the bottom face for the keyboard tray
-//     (rail_w = 3 mm, rail_h = 2 mm, clearance = 0.35 mm – per spec)
-//   • Stop blocks inside rail channels (prevent accidental tray removal)
+//   • Two rectangular slider rails on the interior side walls (additive)
+//     (rail_width = 3 mm, rail_height = 3 mm, clearance = 0.35 mm – per spec)
+//     Rails protrude inward at Y = ±(phone_length/2 − wall_thickness);
+//     the solid bottom floor is not modified
 //   • Magnet pockets: 10.3 mm bore × 4.2 mm deep, 0.5 mm retention lip
 //     for 10 mm × 4 mm neodymium disc magnets
 //   • PCB mounting posts (Heltec V4) positioned below the viewport
@@ -24,7 +25,7 @@
 //   1. Install Heltec V4 PCB onto mounting posts (M2 screws)
 //   2. Press 10 mm × 4 mm magnets into pockets (check polarity)
 //   3. Insert LiPo battery into recess
-//   4. Slide keyboard_tray into rail channels from the +X end
+//   4. Slide keyboard_tray onto top-shell rails from the +X end
 //   5. Snap tray closed; clip CardKB (88×54 mm) into tray pocket
 //
 // PRINT ORIENTATION
@@ -95,13 +96,8 @@ module main_body() {
                 cube([lipo_width + 1, lipo_length + 1, lipo_thickness + 1],
                      center = true);
 
-            // ── T-slot rail channels (bottom face, Z = 0 upward) ────────────────
-            for (side = [-1, 1]) {
-                translate([-phone_width/2 - 1,
-                           side * rail_y - rail_channel_w/2,
-                           0])
-                    rail_channel_void(phone_width);
-            }
+            // (Rail channels removed: rails are now additive features on side walls,
+            //  added below in the outer union() – floor remains solid per spec)
 
             // ── Magnet pockets – CLOSED-position detent ─────────────────────────
             for (side = [-1, 1]) {
@@ -209,12 +205,22 @@ module main_body() {
             }
         }
 
-        // ── Stop blocks inside rail channels ──────────────────────────────────────
-        for (side = [-1, 1]) {
-            translate([stop_block_pos_x - stop_block_depth,
-                       side * rail_y - rail_channel_w/2,
-                       0])
-                cube([stop_block_depth, rail_channel_w, stop_block_height]);
+        // ── Slider guide rails (additive, on interior side walls) ─────────────────
+        // Rectangular rails on the interior face of the outer long walls.
+        // Y = ±wall_inner_y = ±(phone_length/2 − wall_thickness) = ±57.8 mm.
+        // Rails protrude inward by rail_width = 3 mm; height = rail_height = 3 mm.
+        // Z = wall_thickness … wall_thickness + rail_height (above the floor).
+        // Solid bottom floor (Z = 0 … wall_thickness) is unmodified per spec.
+        // X = phone_width/2 − rail_length … phone_width/2  (+X insertion end).
+        wall_inner_y_mb        = phone_length / 2 - wall_thickness;
+        slider_rail_inner_y_mb = wall_inner_y_mb - rail_width;
+        slider_rail_x_start_mb = phone_width / 2 - rail_length;
+        for (flip = [false, true]) {
+            mirror([0, flip ? 1 : 0, 0])
+                translate([slider_rail_x_start_mb,
+                           slider_rail_inner_y_mb,
+                           wall_thickness])
+                    cube([rail_length, rail_width, rail_height]);
         }
     }
 }
