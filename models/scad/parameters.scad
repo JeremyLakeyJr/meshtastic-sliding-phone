@@ -149,6 +149,8 @@ keyboard_travel  = slider_travel;  // Backward-compatible alias
 //   Groove depth  = rail_height + rail_clearance      = 3.35 mm
 //
 // Rail placement:
+//   Z = −rail_height … 0 : protrude BELOW the top-shell bottom face so the
+//       rails engage the tray grooves (world Z = tray_z − groove_depth … tray_z)
 //   Y = ±(phone_length/2 − wall_thickness)  (one per interior side wall)
 //   X = phone_width/2 − rail_length … phone_width/2   (≥ 70 % of tray width)
 //   Grooves run the same X range on the tray
