@@ -7,22 +7,27 @@ Run this script to produce STL files without needing OpenSCAD installed.
 
 DESIGN (2-piece)
   top_shell     – unified enclosure (display, PCB, battery, rails, ports)
-  keyboard_tray – sliding keyboard carriage (CardKB 88×54mm, T-runners, magnets)
+  keyboard_tray – sliding keyboard carriage (CardKB 88×54mm, dovetail runners, magnets)
   bottom_shell  – alias for keyboard_tray (2-piece naming convention)
 
-Mechanism: shortways (X-axis) magnetic-detent slider with captured-lip T-slot rails.
+Mechanism: shortways (X-axis) magnetic-detent slider with captured dovetail rails.
   • phone_width = 95 mm; slider_travel = 65 mm → 30 mm rail engagement at full ext.
-  • Two parallel T-rail runners (rail_w=3mm, rail_h=2mm, clearance=0.35mm) on the
-    keyboard-tray top face slide inside matching T-slot channels in the top-shell
-    underside, positioned at Y = ±RAIL_Y (±40 mm).
+  • Two parallel dovetail runners (rail_top_width=1.2mm narrow base,
+    rail_base_width=4mm wide cap, rail_height=3mm) on the keyboard-tray top face
+    slide inside matching dovetail grooves in the top-shell underside,
+    positioned at Y = ±RAIL_Y (±40 mm, spacing = 80 mm).
+  • Groove: narrow opening 1.9mm → widens to 4.7mm at rail_height depth,
+    plus CHANNEL_STANDOFF=2mm straight zone for passive ~3° typing angle.
   • Neodymium 10 mm × 4 mm disc magnets (pocket bore 10.3 mm, depth 4.2 mm,
     retention lip 0.5 mm) snap the tray into closed (travel=0) and open
     (travel=65 mm) positions.  Symmetric detents at body X = ±32 mm.
-  • Stop blocks (2 mm tall) inside the rail channels at body X ≈ −15.5 mm prevent
-    accidental removal.  A matching stop_cutout (2.5 mm) at the runner -X tip
-    allows initial assembly from the +X entry end.
-  • A shallow snap ramp in the last 5 mm of travel gives a "self-finish" feel.
-  • CardKB pocket: 88×54 mm (width×height), 8 mm deep, 0.5 mm clearance.
+  • Stop blocks (2 mm tall, groove-opening-width wide) inside the rail grooves
+    at body X ≈ −15.5 mm prevent accidental removal.  A matching stop_cutout
+    (2.5 mm) at the runner -X tip allows initial assembly from the +X entry end.
+  • Battery pocket: 71×51×9 mm (MakerFocus 3000 mAh, integrated in top shell).
+  • USB-C cutout: 11×4 mm.  Standoffs: 4×M2, height 4 mm, diameter 5 mm.
+  • Wire routing groove: 6×2 mm alongside +Y rail for CardKB flex cable.
+  • CardKB pocket: 89×55 mm (width×height), 8 mm deep, 0.5 mm clearance.
 
 Usage:
     python3 generate_stl.py                     # Generate all parts
@@ -67,7 +72,12 @@ DISPLAY_DEPTH    =   2.0
 PCB_LENGTH       =  52.0
 PCB_WIDTH        =  26.0
 
-# LiPo battery
+# Battery pocket (MakerFocus 3000 mAh 3.7 V LiPo, ~70×50×8 mm nominal)
+BATTERY_POCKET_X =  71.0   # pocket X dimension – per spec
+BATTERY_POCKET_Y =  51.0   # pocket Y dimension – per spec
+BATTERY_POCKET_Z =   9.0   # pocket depth – per spec
+
+# Legacy LiPo (kept for reference)
 LIPO_THICKNESS   =   6.0
 LIPO_WIDTH       =  42.0
 LIPO_LENGTH      =  52.0
@@ -88,25 +98,70 @@ KEYBOARD_HEIGHT_CLEARANCE = 10.0  # min internal Z clearance
 SLIDER_TRAVEL    =  65.0
 KEYBOARD_TRAVEL  =  SLIDER_TRAVEL   # alias
 
-# --- Rail system (T-slot captured-lip; per spec) ---
-RAIL_W          =  3.0   # runner stem width (Y) – per spec
-RAIL_H          =  2.0   # runner height (Z) – per spec
-RAIL_Y          = 40.0   # ±Y from phone centreline
-RAIL_LIP_H      =  1.0
-RAIL_LIP_W      =  1.5
-RAIL_CLEARANCE  =  0.35  # per-side – per spec
-RAIL_ENTRY_CHAMFER = 0.6
-RAIL_CHAMFER    = RAIL_ENTRY_CHAMFER
-RAIL_CHANNEL_W  = RAIL_W + 2 * RAIL_CLEARANCE   # 3.7 mm
-RAIL_CHANNEL_H  = RAIL_H + 2.5                  # 4.5 mm (2.5 mm standoff)
-RAIL_HEIGHT     = RAIL_CHANNEL_H
+# --- Dovetail rail system (per spec) ---
+RAIL_BASE_WIDTH  =  4.0   # runner cap width (wide, free end) – per spec
+RAIL_TOP_WIDTH   =  1.2   # runner base width (narrow, tray-attachment) – per spec
+RAIL_HEIGHT      =  3.0   # runner height (Z) – per spec
+RAIL_ANGLE       = 45.0   # reference dovetail side angle – per spec
+RAIL_SPACING     = 80.0   # centre-to-centre Y spacing between rails – per spec
+RAIL_Y           = RAIL_SPACING / 2   # ±40.0 mm
 
-# Snap-ramp near the open-position end
-SNAP_RAMP_X     =  5.0
-SNAP_RAMP_Z     =  0.4
+RAIL_CLEARANCE   =  0.35  # per-side clearance – per spec
+CLEARANCE_START  =  0.30  # start of travel
+CLEARANCE_MID    =  0.35  # mid-travel nominal
+CLEARANCE_END    =  0.45  # end of travel (open)
 
-# Typing angle (passive – accommodated by 2.5 mm standoff clearance)
-TYPING_ANGLE    =  3.0   # degrees (design intent)
+RAIL_ENTRY_CHAMFER = 1.0  # per spec (was 0.6 mm)
+RAIL_CHAMFER     = RAIL_ENTRY_CHAMFER
+
+CHANNEL_STANDOFF =  2.0   # extra groove depth beyond rail_height (passive tilt)
+
+# Derived groove dimensions
+RAIL_CHANNEL_W     = RAIL_TOP_WIDTH  + 2 * RAIL_CLEARANCE   # 1.9 mm – groove opening
+RAIL_CHANNEL_INNER = RAIL_BASE_WIDTH + 2 * RAIL_CLEARANCE   # 4.7 mm – groove inner
+RAIL_CHANNEL_H     = RAIL_HEIGHT + CHANNEL_STANDOFF          # 5.0 mm – total groove depth
+
+# Pop-up (passive via CHANNEL_STANDOFF)
+RAIL_SLOPE_ANGLE    =  3.0   # target typing angle degrees
+MAXIMUM_LIFT_HEIGHT =  3.0   # maximum tray lift mm
+
+# Stop / detent bumps
+STOP_BUMP_HEIGHT =  1.2   # per spec
+DETENT_HEIGHT    =  0.3   # per spec
+
+# Wire routing tunnel
+WIRE_TUNNEL_WIDTH  =  6.0   # per spec
+WIRE_TUNNEL_HEIGHT =  2.0   # per spec
+
+# --- End-stop blocks (inside rail grooves) – per spec ---
+STOP_BLOCK_HEIGHT = 2.0   # block height above groove floor
+STOP_CUTOUT       = 2.5   # runner -X tip cutout depth (enables assembly)
+STOP_BLOCK_DEPTH  = 2.0   # stop block X-dimension
+TAB_STOP_MARGIN   = 2.0   # travel margin before stop (mm before SLIDER_TRAVEL)
+
+# Stop block +X face position in body frame:
+# STOP_BLOCK_POS_X = -(SLIDER_TRAVEL - TAB_STOP_MARGIN - PHONE_WIDTH/2) = -15.5 mm
+STOP_BLOCK_POS_X = -(SLIDER_TRAVEL - TAB_STOP_MARGIN - PHONE_WIDTH / 2)
+
+# Legacy tab stop (kept for backward compat)
+TAB_W_EXTRA     =  2.0
+TAB_DEPTH       =  3.0
+TAB_HEIGHT_EXT  =  1.5
+
+# --- Ports (per spec) ---
+SMA_D    =  6.5
+USBC_W   = 11.0   # per spec (was 9.5 mm)
+USBC_H   =  4.0   # per spec (was 3.5 mm)
+
+# --- Standoffs / screw posts (per spec) ---
+STANDOFF_HEIGHT   =  4.0   # per spec (was 5.0 mm)
+STANDOFF_DIAMETER =  5.0   # per spec
+SCREW_HOLE_D      =  2.2
+SCREW_POST_D      =  STANDOFF_DIAMETER
+SCREW_POST_H      =  STANDOFF_HEIGHT   # alias
+
+# --- Antenna keepout ---
+ANTENNA_KEEPOUT_RADIUS = 12.0  # per spec
 
 # --- Neodymium magnet detents (10 mm × 4 mm disc, N35) – per spec ---
 MAGNET_D         = 10.0   # physical magnet diameter
@@ -120,31 +175,9 @@ MAGNET_Y         = 20.0
 # Symmetric detents: closed at +32 mm, open at 32−65 = −33 mm
 DETENT_X_OFFSET  = 32.0
 
-# --- End-stop blocks (inside rail channels) – per spec ---
-STOP_BLOCK_HEIGHT = 2.0   # block height above channel floor
-STOP_CUTOUT       = 2.5   # runner -X tip cutout depth (enables assembly)
-STOP_BLOCK_DEPTH  = 2.0   # stop block X-dimension
-TAB_STOP_MARGIN   = 2.0   # travel margin before stop (mm before SLIDER_TRAVEL)
-
-# Stop block +X face position: body X = −(SLIDER_TRAVEL − TAB_STOP_MARGIN − PHONE_WIDTH/2)
-# Stop block +X face position in body frame:
-# STOP_BLOCK_POS_X = -(SLIDER_TRAVEL - TAB_STOP_MARGIN - PHONE_WIDTH/2) = -15.5 mm
-STOP_BLOCK_POS_X = -(SLIDER_TRAVEL - TAB_STOP_MARGIN - PHONE_WIDTH / 2)
-
-# Legacy tab stop (kept for backward compat)
-TAB_W_EXTRA     =  2.0
-TAB_DEPTH       =  3.0
-TAB_HEIGHT_EXT  =  1.5
-
-# --- Ports ---
-SMA_D    =  6.5
-USBC_W   =  9.5
-USBC_H   =  3.5
-
-# --- Screw posts ---
-SCREW_HOLE_D =  2.2
-SCREW_POST_D =  5.0
-SCREW_POST_H =  5.0
+# --- Structural ribs (per spec) ---
+RIB_WIDTH  = 2.0   # per spec
+RIB_HEIGHT = 6.0   # per spec
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "..", "models", "stl")
@@ -218,10 +251,12 @@ def _make_stl(verts, faces):
 # ---------------------------------------------------------------------------
 
 def generate_top_shell():
-    """Unified top enclosure: display face, PCB bay, battery cavity, T-slot rails.
+    """Unified top enclosure: display face, PCB bay, battery pocket, dovetail rail grooves.
 
-    95 × 120 × 19 mm.  T-slot channels at Y = ±RAIL_Y (±40 mm) with stop blocks.
-    Magnet pockets (10.3 mm bore × 4.2 mm) at body X = ±32 mm (symmetric).
+    95 × 120 × 19 mm.  Dovetail grooves at Y = ±RAIL_Y (±40 mm) with stop blocks.
+    Battery pocket 71×51×9 mm.  Magnet pockets (10.3 mm bore × 4.2 mm) at body X = ±32 mm.
+    USB-C 11×4 mm.  Standoffs 4 mm tall, 5 mm dia (M2).
+    Wire routing groove 6×2 mm alongside +Y rail.
     """
     parts = []
     w, l, d = PHONE_WIDTH, PHONE_LENGTH, BODY_Z
@@ -248,21 +283,27 @@ def generate_top_shell():
                                 WALL_THICKNESS, iw, WALL_THICKNESS,
                                 d - WALL_THICKNESS))
 
-    # Floor (provides material for T-slot channels)
+    # Floor (provides material for dovetail grooves)
     parts.append(_box_triangles(0, 0, 0, w, l, WALL_THICKNESS))
 
-    # T-slot rail channel representations at Y = ±RAIL_Y
-    t_slot_w = RAIL_CHANNEL_W + 2 * RAIL_LIP_W   # total void width
+    # Dovetail rail groove representations at Y = ±RAIL_Y
+    # Groove: opening RAIL_CHANNEL_W wide, inner RAIL_CHANNEL_INNER wide
+    groove_repr_w = RAIL_CHANNEL_INNER  # represent as inner width for visibility
     for side in [-1, 1]:
         cy = side * RAIL_Y
-        parts.append(_box_triangles(0, cy, 0, w, t_slot_w, RAIL_CHANNEL_H))
+        parts.append(_box_triangles(0, cy, 0, w, groove_repr_w, RAIL_CHANNEL_H))
 
-    # Stop blocks inside channels at body X = STOP_BLOCK_POS_X (≈ −15.5 mm)
+    # Stop blocks inside grooves at body X = STOP_BLOCK_POS_X (≈ −15.5 mm)
     for side in [-1, 1]:
         cy = side * RAIL_Y
         parts.append(_box_triangles(STOP_BLOCK_POS_X - STOP_BLOCK_DEPTH / 2, cy,
                                     0, STOP_BLOCK_DEPTH,
                                     RAIL_CHANNEL_W, STOP_BLOCK_HEIGHT))
+
+    # Battery pocket representation (71 × 51 × 9 mm, per spec)
+    bat_cy = l / 2 - WALL_THICKNESS - BATTERY_POCKET_Y / 2 - 5
+    parts.append(_box_triangles(0, bat_cy, WALL_THICKNESS,
+                                BATTERY_POCKET_X, BATTERY_POCKET_Y, BATTERY_POCKET_Z))
 
     # Magnet pocket representations on bottom face (10 mm × 4 mm)
     for side in [-1, 1]:
@@ -274,24 +315,32 @@ def generate_top_shell():
         parts.append(_cylinder_triangles(DETENT_X_OFFSET - SLIDER_TRAVEL, my, 0,
                                          MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 16))
 
-    # PCB mounting posts (4 cylinders, Heltec V4 under OLED viewport)
+    # PCB mounting standoffs (4 posts, Heltec V4, height STANDOFF_HEIGHT=4 mm)
     dy = l / 2 - DISPLAY_OFFSET_Y - PCB_LENGTH / 2
     for sx in [-1, 1]:
         for sy in [-1, 1]:
             px = sx * (PCB_WIDTH / 2 - 2)
             py = dy + sy * (PCB_LENGTH / 2 - 3)
             parts.append(_cylinder_triangles(px, py, WALL_THICKNESS,
-                                             SCREW_POST_D / 2, SCREW_POST_H, 16))
+                                             STANDOFF_DIAMETER / 2,
+                                             STANDOFF_HEIGHT, 16))
 
-    # Reinforcement ribs
-    rib_t  = WALL_THICKNESS / 2
-    rib_h  = d - WALL_THICKNESS
+    # Reinforcement ribs (rib_width=2mm, rib_height=6mm per spec)
+    rib_t  = RIB_WIDTH
+    rib_h  = RIB_HEIGHT
     rib_iw = w - 2 * WALL_THICKNESS
     rib_il = l - 2 * WALL_THICKNESS
+    # Longitudinal rib (along Y, centred in X)
     parts.append(_box_triangles(0, 0, WALL_THICKNESS, rib_t, rib_il, rib_h))
+    # Lateral ribs at 1/3 and 2/3 of interior Y span
     for frac in [1/3, 2/3]:
         ry = -l/2 + WALL_THICKNESS + frac * rib_il
         parts.append(_box_triangles(0, ry, WALL_THICKNESS, rib_iw, rib_t, rib_h))
+
+    # Wire routing groove alongside +Y rail (6×2 mm)
+    wire_cy = RAIL_Y + RAIL_BASE_WIDTH / 2 + RAIL_CLEARANCE + 0.5 + WIRE_TUNNEL_WIDTH / 2
+    parts.append(_box_triangles(0, wire_cy, 0,
+                                w, WIRE_TUNNEL_WIDTH, WIRE_TUNNEL_HEIGHT))
 
     verts, faces = _combine_meshes(parts)
     return _make_stl(verts, faces)
@@ -303,12 +352,13 @@ def generate_main_body():
 
 
 def generate_keyboard_tray():
-    """Sliding keyboard tray (bottom shell): CardKB pocket, T-rail runners, magnets.
+    """Sliding keyboard tray (bottom shell): CardKB pocket, dovetail runners, magnets.
 
-    95 × 120 × 8 mm.  CardKB pocket 88×54 mm (width×height), 8 mm deep.
-    Runners: rail_w=3mm, rail_h=2mm at Y = ±40 mm.
+    95 × 120 × 8 mm.  CardKB pocket 89×55 mm (width×height), 8 mm deep.
+    Dovetail runners: base 1.2 mm, cap 4.0 mm, height 3.0 mm at Y = ±40 mm.
     Magnets: 10 mm × 4 mm at ±20 mm Y, tray-local X = +32 mm.
-    Stop cutouts at runner -X tips (2.5 mm deep, enables assembly).
+    Stop cutouts at runner -X tips (2.5 mm deep × groove_opening_w wide).
+    Wire routing groove: 6×2 mm alongside +Y rail.
     """
     parts = []
     w, l, d = PHONE_WIDTH, PHONE_LENGTH, TRAY_Z
@@ -332,21 +382,21 @@ def generate_keyboard_tray():
                                 WALL_THICKNESS, iw, WALL_THICKNESS,
                                 d - WALL_THICKNESS))
 
-    # Dual T-rail runners on top face at Y = ±RAIL_Y
-    # Runner: 3 mm wide stem (rail_h − rail_lip_h = 1 mm tall) +
-    #         6 mm wide lip cap (rail_lip_h = 1 mm tall)
+    # Dual dovetail runners on top face at Y = ±RAIL_Y
+    # Runner: narrow base RAIL_TOP_WIDTH (1.2 mm) at Z=d,
+    #         wide cap RAIL_BASE_WIDTH (4.0 mm) at Z=d+RAIL_HEIGHT
     for side in [-1, 1]:
         cy = side * RAIL_Y
-        stem_h = RAIL_H - RAIL_LIP_H   # 1.0 mm
-        lip_w  = RAIL_W + 2 * RAIL_LIP_W   # 6.0 mm
-        # Stem
-        parts.append(_box_triangles(0, cy, d, w, RAIL_W, stem_h))
-        # Lip cap
-        parts.append(_box_triangles(0, cy, d + stem_h, w, lip_w, RAIL_LIP_H))
+        # Represent runner as a trapezoidal prism: use average width for box approx
+        avg_w = (RAIL_TOP_WIDTH + RAIL_BASE_WIDTH) / 2   # 2.6 mm
+        # Base part (narrow, at tray face)
+        parts.append(_box_triangles(0, cy, d, w, RAIL_TOP_WIDTH, RAIL_HEIGHT / 2))
+        # Cap part (wide, at free end)
+        parts.append(_box_triangles(0, cy, d + RAIL_HEIGHT / 2,
+                                    w, RAIL_BASE_WIDTH, RAIL_HEIGHT / 2))
 
     # CardKB pocket representation (walls around the pocket area)
-    # CardKB: 88 mm (Y) × 54 mm (X, slide direction), 7 mm thick
-    # Pocket: 89 mm (Y) × 55 mm (X), 8 mm deep
+    # Pocket: 55 mm (X) × 89 mm (Y), 8 mm deep
     pocket_x = CARDKB_H + 2 * KEYBOARD_CLEARANCE   # 55 mm
     pocket_y = CARDKB_W + 2 * KEYBOARD_CLEARANCE   # 89 mm
     ckb_cx = -w / 2 + WALL_THICKNESS + pocket_x / 2
@@ -364,6 +414,11 @@ def generate_keyboard_tray():
         parts.append(_cylinder_triangles(DETENT_X_OFFSET, my,
                                          d - MAGNET_POCKET_H,
                                          MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 16))
+
+    # Wire routing groove alongside +Y rail (6×2 mm)
+    wire_cy = RAIL_Y + RAIL_BASE_WIDTH / 2 + RAIL_CLEARANCE + 0.5 + WIRE_TUNNEL_WIDTH / 2
+    parts.append(_box_triangles(0, wire_cy, d - WIRE_TUNNEL_HEIGHT,
+                                w, WIRE_TUNNEL_WIDTH, WIRE_TUNNEL_HEIGHT))
 
     verts, faces = _combine_meshes(parts)
     return _make_stl(verts, faces)
@@ -402,7 +457,7 @@ GENERATORS = {
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate Meshtastic Sliding Phone STL files (2-piece design)")
+        description="Generate Meshtastic Sliding Phone STL files (2-piece dovetail design)")
     parser.add_argument("--part", choices=list(GENERATORS.keys()),
                         help="Generate a single part (default: all canonical parts)")
     parser.add_argument("--output-dir", default=OUTPUT_DIR,

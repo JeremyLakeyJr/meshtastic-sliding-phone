@@ -8,52 +8,47 @@
 //
 // KEY FEATURES
 // ─────────────────────────────────────────────────────────────────────────
-// Dual captured-lip (T-slot) rails with anti-tilt system
-//   Two T-shaped runners protrude from the tray top face (+Z).  Runners run
-//   along the X axis at Y = ±rail_y = ±40 mm.
-//     Stem: rail_w × (rail_h − rail_lip_h) = 3.0 × 1.0 mm
-//     Lip:  (rail_w + 2×rail_lip_w) × rail_lip_h = 6.0 × 1.0 mm
-//   The 2.5 mm T-slot standoff (rail_channel_h − rail_h) allows the tray to
-//   adopt a slight (~3°) passive typing angle when fully extended.
+// Dual captured dovetail rails with anti-tilt system
+//   Two trapezoidal runners protrude from the tray top face (+Z).
+//   Runners run along the X axis at Y = ±rail_y = ±40 mm.
+//     Base (tray face):  rail_top_width  = 1.2 mm  (narrow, attachment end)
+//     Cap  (free end):   rail_base_width = 4.0 mm  (wide, captured in groove)
+//     Height:            rail_height     = 3.0 mm
+//   The ±40 mm rail spacing (rail_spacing = 80 mm) prevents rotational tilt.
+//   Passive typing angle ≈ atan(channel_standoff/30) ≈ 3° at full extension.
+//
+// Wire routing groove alongside +Y rail
+//   6 mm wide × 2 mm deep channel outside the +Y rail for the CardKB flex
+//   cable; a matching groove in the top shell prevents cable pinching.
 //
 // Magnetic detents (neodymium disc magnets, 10 mm dia × 4 mm thick, N35)
 //   Two press-fit pockets on the tray top face at ±magnet_y = ±20 mm,
 //   X = +detent_x_offset = +32 mm (tray local).
-//   Bore = magnet_diameter = 10.3 mm (0.15 mm/side clearance).
-//   Retention lip: 9.3 mm entrance (magnet snaps past lip on insertion).
-//   Alignment (body frame):
-//     Closed (travel = 0):    tray magnets at body X = +32 mm → CLOSED pockets ✓
-//     Open   (travel = 65 mm): tray magnets at body X = 32−65 = −33 mm → OPEN ✓
+//   Bore = 10.3 mm, retention lip = 0.5 mm (entrance 9.3 mm).
+//   Closed (travel = 0):    tray magnets at body X = +32 mm → CLOSED pockets ✓
+//   Open   (travel = 65 mm): tray magnets at body X = 32−65 = −33 mm → OPEN ✓
 //
-// Stop cutouts at runner -X tip
-//   A 2.5 mm (stop_cutout) deep × 2 mm (stop_block_height) tall notch at
-//   the -X end of each runner allows the runner tip to pass the body's stop
-//   blocks (at body X ≈ −15.5 mm) during initial assembly.  After assembly
-//   the solid runner body contacts the stop blocks at full travel, preventing
-//   accidental removal.
+// Stop cutouts at runner −X tip
+//   A 2.5 mm (stop_cutout) deep notch at the −X end of each runner allows the
+//   runner tip to clear the body's stop blocks during initial assembly.
+//   Cutout: stop_cutout × groove_opening_w (1.9 mm) × (stop_block_height + 0.5 mm)
 //
 // CardKB pocket (M5Stack CardKB v1.1, 88 × 54 × 7 mm)
-//   Recessed pocket at the −X (extension) end sized for the CardKB:
-//   88 mm long axis along Y, 54 mm short axis along X (slide direction).
-//   Pocket: (cardkb_w + 2×keyboard_clearance) × (cardkb_h + 2×keyboard_clearance)
-//           = 89 × 55 mm in X–Y, depth = keyboard_pocket_depth = 8 mm.
-//   Internal Z clearance = keyboard_height_clearance = 10 mm so the keyboard
-//   never collides with the shell when the slider is closed.
-//   Retention ledges on the ±Y sides snap the CardKB into the pocket.
-//
-// Auto-snap ramp
-//   The top-shell rail channels have a shallow snap ramp near the −X end
-//   (last snap_ramp_x = 5 mm of travel) for the classic "snap open" feel.
+//   Recessed pocket at the −X (extension) end:
+//   Pocket: 89 × 55 mm (X × Y, with 0.5 mm per-side clearance)
+//   Depth: keyboard_pocket_depth = 8 mm  ✓  (> cardkb_thickness 7 mm)
+//   Retention ledges on ±Y sides hold the CardKB in the pocket.
 //
 // ─────────────────────────────────────────────────────────────────────────
 // Assembly
-//   1. Insert from the +X end: align the two T-runners with the T-slot
-//      channels and slide −X until the closed-position magnetic snap is felt.
-//      The entry chamfer guides the runner lips in automatically.
+//   1. Insert from the +X end: align the two dovetail runners with the
+//      top-shell grooves and slide −X until the closed-position snap is felt.
+//      The entry chamfer (1 mm) guides the runner caps into the grooves.
 //   2. Press-fit magnets (check pole orientation — opposing pairs attract).
 //   3. Clip CardKB module into the tray pocket.
 //
-// Print orientation : TOP FACE DOWN (runners print upward; no supports needed)
+// Print orientation : TOP FACE DOWN (runners print upward from tray face;
+//                     no supports needed — dovetail walls at ~65° from horizontal)
 // Print settings    : 0.2 mm layer height, 30 % infill, brim recommended
 // ============================================================================
 
@@ -63,28 +58,25 @@ use <utilities.scad>
 module keyboard_tray() {
     tray_w = phone_width;   // Tray X span matches top-shell body width (95 mm)
 
-    // Stop block position in body frame: stop_bx = −15.5 mm (same as top_shell).
-    // In TRAY-LOCAL frame at CLOSED position (travel = 0), the stop block
-    // sits at the same X coordinate.  The stop_cutout notch is placed at the
-    // runner −X TIP (tray-local X = −tray_w/2 = −47.5 mm).
-    // Cutout width in X = stop_cutout = 2.5 mm (> stop_block_depth = 2 mm).
-
     // CardKB pocket dimensions (with clearance)
     pocket_x = cardkb_h + 2 * keyboard_clearance;   // 55 mm in X (slide direction)
     pocket_y = cardkb_w + 2 * keyboard_clearance;   // 89 mm in Y (long axis)
+
+    // Groove opening width (for stop cutout sizing to match stop block)
+    groove_opening_w = rail_top_width + 2 * rail_clearance;  // 1.9 mm
 
     difference() {
         union() {
             // --- Main tray body ---
             rounded_box(phone_width, phone_length, tray_z, corner_radius);
 
-            // --- Dual captured-lip T-rail runners (top face, Z = tray_z) ------
-            // T-shaped runners at Y = ±rail_y = ±40 mm, spanning the full
+            // --- Dual dovetail runners (top face, Z = tray_z) ----------------
+            // Trapezoidal runners at Y = ±rail_y = ±40 mm, spanning the full
             // tray width in X.  The ±40 mm separation prevents rotational tilt
-            // about the X axis.
+            // about the X axis.  Runner is centred on each rail_y position.
             for (side = [-1, 1]) {
                 translate([-tray_w / 2,
-                           side * rail_y - rail_w / 2,
+                           side * rail_y,
                            tray_z])
                     rail_runner(tray_w);
             }
@@ -117,6 +109,14 @@ module keyboard_tray() {
             rotate([0, 90, 0])
                 rounded_box(cardkb_thickness + 1, 10, wall_thickness + 0.4, 1);
 
+        // --- Wire routing groove alongside +Y rail ---------------------------
+        // Matches the groove in the top shell; 6 mm wide × 2 mm deep.
+        // Provides a protected channel for the keyboard flex cable.
+        translate([-tray_w / 2,
+                   rail_y + rail_base_width / 2 + rail_clearance + 0.5,
+                   tray_z - wire_tunnel_height])
+            cube([tray_w, wire_tunnel_width, wire_tunnel_height + 0.1]);
+
         // --- Magnet pockets on tray top face (openings at Z = tray_z) --------
         // Pockets at ±magnet_y, X = +detent_x_offset (+32 mm tray-local).
         // Opening is flush with the tray top face; Z offset = tray_z − magnet_depth.
@@ -128,16 +128,17 @@ module keyboard_tray() {
         }
 
         // --- Stop cutouts at runner −X tips ----------------------------------
-        // Notch at the leading (−X) end of each runner: stop_cutout deep × rail_w
-        // wide × (stop_block_height + cutout_z_clearance) tall.
-        // cutout_z_clearance: extra 0.5 mm so the cutout clears the stop block top
-        // with a small vertical gap, ensuring smooth assembly and no rattle.
+        // Notch at the leading (−X) end of each runner, spanning the groove
+        // opening width (1.9 mm) so the runner tip clears the stop block
+        // (also 1.9 mm wide) during initial assembly from the +X entry end.
+        // Cutout dimensions: stop_cutout (X) × groove_opening_w (Y) × (stop_block_height + 0.5) (Z)
         cutout_z_clearance = 0.5;
         for (side = [-1, 1]) {
             translate([-tray_w / 2,
-                       side * rail_y - rail_w / 2,
+                       side * rail_y - groove_opening_w / 2,
                        tray_z])
-                cube([stop_cutout, rail_w, stop_block_height + cutout_z_clearance]);
+                cube([stop_cutout, groove_opening_w,
+                      stop_block_height + cutout_z_clearance]);
         }
     }
 

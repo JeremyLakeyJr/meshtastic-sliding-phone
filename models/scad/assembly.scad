@@ -6,10 +6,10 @@
 //
 // PARTS
 //   top_shell     – unified enclosure (display, PCB, battery, rails, ports)
-//   keyboard_tray – sliding component (CardKB 88×54 mm, T-runners, magnets)
+//   keyboard_tray – sliding component (CardKB 88×54 mm, dovetail runners, magnets)
 //
 // The keyboard tray slides in the −X direction (shortways, along the 95 mm
-// short axis) along two parallel T-slot captured-lip rail channels on the
+// short axis) along two parallel captured dovetail rail grooves on the
 // top-shell underside.  Neodymium 10 mm × 4 mm disc magnets snap the tray
 // into the closed (travel = 0) and open (travel = slider_travel = 65 mm)
 // positions.  Holding the phone in landscape (120 mm wide, 95 mm tall) the
@@ -18,7 +18,18 @@
 // SLIDER TRAVEL = 65 mm → exposes 65 mm of tray area (≥ 60 mm spec) ✓
 // RAIL ENGAGEMENT at full extension = phone_width − slider_travel = 30 mm ✓
 // MAGNET POCKETS: 10.3 mm bore × 4.2 mm deep, 0.5 mm retention lip
-// STOP BLOCKS: 2 mm tall inside channels at body X ≈ −15.5 mm
+// STOP BLOCKS: 2 mm tall inside grooves at body X ≈ −15.5 mm
+//
+// RAIL SYSTEM (dovetail, per spec):
+//   Runner: narrow base 1.2 mm (rail_top_width) → wide cap 4 mm (rail_base_width)
+//   Groove: opening 1.9 mm → inner 4.7 mm at rail_height, +2 mm standoff zone
+//   Passive typing angle ≈ 3° at full extension via channel_standoff
+//
+// BATTERY POCKET: 71 × 51 × 9 mm (MakerFocus 3000 mAh), integrated in top shell
+// USB-C CUTOUT: 11 × 4 mm (per spec); SMA antenna keepout radius 12 mm
+// STANDOFFS: 4 × M2, height 4 mm, diameter 5 mm (Heltec V3/V4)
+//
+// WIRE ROUTING: 6 × 2 mm groove alongside +Y rail for CardKB flex cable
 //
 // Not intended for printing — use top_shell.scad and keyboard_tray.scad.
 //
@@ -106,7 +117,7 @@ if (exploded) {
             text("Meshtastic Sliding Phone", size = 6, halign = "center");
     translate([0, 0, phone_thickness + 2 * explode_gap + 2])
         linear_extrude(height = 0.5)
-            text(str("2-piece · top_shell + keyboard_tray · 10mm×4mm magnets · ",
-                     slider_travel, "mm travel · 30mm rail engagement"),
+            text(str("2-piece · dovetail rail · 10mm×4mm magnets · ",
+                     slider_travel, "mm travel · 30mm engagement · 3° typing angle"),
                  size = 3.0, halign = "center");
 }
