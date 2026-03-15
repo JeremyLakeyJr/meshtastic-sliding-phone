@@ -1,15 +1,15 @@
 # Meshtastic Sliding Phone
 
-A 3D-printable sliding phone enclosure for **Meshtastic** mesh networking devices. Inspired by the **Sony Xperia** slide phone mechanism, this design houses a **Heltec WiFi LoRa 32 V4** board and a **M5Stack CardKB** I²C keyboard in a compact, pocket-friendly form factor with an arc-sliding keyboard that tilts the screen upward when opened.
+A 3D-printable sliding phone enclosure for **Meshtastic** mesh networking devices. This design houses a **Heltec WiFi LoRa 32 V4** board and a **M5Stack CardKB** I²C keyboard in a compact, pocket-friendly Nokia N900-style landscape slider. The keyboard tray slides along two rectangular guide rails on the interior side walls of the top shell, snapping into open and closed positions via offset neodymium magnet detents.
 
 ```
     ┌─────────────────────┐
     │  ╔═════════╗        │  ← Speaker grille
     │  ║ 0.96"   ║        │
-    │  ║  OLED   ║   ↗    │  ← OLED viewport (tilts up when slid open)
+    │  ║  OLED   ║        │  ← OLED viewport
     │  ╚═════════╝        │
     │     [PWR]  [VOL]    │  ← Side buttons
-    ├───●─────────────●───┤  ← Arc guide pins (curved slide mechanism)
+    ├─────────────────────┤  ← Rectangular rail guides (interior side walls)
     │  ┌─┐┌─┐┌─┐┌─┐┌─┐  │
     │  │Q││W││E││R││T│..  │  ← CardKB (revealed when slid open)
     │  └─┘└─┘└─┘└─┘└─┘  │
@@ -22,11 +22,11 @@ A 3D-printable sliding phone enclosure for **Meshtastic** mesh networking device
 
 ## Features
 
-- **Sony Xperia-style arc slider** with curved guide channels — the screen tilts up ~25° when opened for comfortable viewing
-- **Guide pin mechanism** with internal arc channels and snap detent positions
+- **Rectangular-rail slider** — two 3×3 mm rectangular guide rails on the interior side walls of the top shell constrain the keyboard tray; passive ~3° typing tilt at full extension
+- **Offset magnetic detents** — 6× 10 mm × 4 mm neodymium disc magnets (4 in top shell, 2 in tray) snap audibly into closed and open positions via 6 mm lateral offset
 - **0.96" OLED viewport** aligned with the Heltec V4's built-in 128×64 display
-- **CardKB pocket** — snap-in slot for the M5Stack CardKB I²C keyboard module
-- **LiPo battery** compartment (MakerFocus 3000 mAh or similar flat pouch cell, ~65×36×10 mm) with snap-fit cover
+- **CardKB pocket** — snap-in slot for the M5Stack CardKB I²C keyboard module (88×54×7 mm)
+- **LiPo battery** compartment (MakerFocus 3000 mAh or similar flat pouch cell, ~71×51×9 mm) integrated in the top shell
 - **SMA antenna mount** with strain relief for LoRa whip antenna
 - **USB-C port** access for charging and firmware flashing
 - **Speaker grille & microphone** holes
@@ -47,19 +47,19 @@ meshtastic-sliding-phone/
 ├── models/
 │   ├── scad/                    # OpenSCAD parametric source files
 │   │   ├── parameters.scad      # Shared dimensions & tolerances
-│   │   ├── utilities.scad       # Reusable shape modules
-│   │   ├── top_shell.scad       # Upper sliding body + OLED viewport
-│   │   ├── bottom_shell.scad    # Lower body + CardKB pocket + PCB bay
-│   │   ├── battery_cover.scad   # Snap-fit LiPo battery door
-│   │   ├── antenna_mount.scad   # SMA connector mount
-│   │   └── assembly.scad        # Full exploded/assembled view
+│   │   ├── utilities.scad       # Reusable shape modules (rails, magnets, etc.)
+│   │   ├── top_shell.scad       # Unified top enclosure: OLED viewport, PCB bay, battery, rails
+│   │   ├── keyboard_tray.scad   # Sliding keyboard tray: CardKB pocket, rail grooves, magnets
+│   │   ├── bottom_shell.scad    # Alias for keyboard_tray.scad (2-piece naming)
+│   │   ├── main_body.scad       # Backward-compatible alias for top_shell.scad
+│   │   ├── antenna_mount.scad   # SMA connector mount with strain relief
+│   │   └── assembly.scad        # Full exploded/assembled preview (not for printing)
 │   └── stl/                     # Pre-generated printable meshes
 │       ├── top_shell.stl
-│       ├── bottom_shell.stl
-│       ├── battery_cover.stl
+│       ├── keyboard_tray.stl
 │       └── antenna_mount.stl
 ├── scripts/
-│   └── generate_stl.py          # Python STL generator (no OpenSCAD needed)
+│   └── generate_stl.py          # Python STL generator (no OpenSCAD needed; approximate)
 ├── docs/
 │   └── bill_of_materials.md     # Parts list & sourcing guide
 └── README.md
@@ -71,20 +71,21 @@ meshtastic-sliding-phone/
 |-----------|--------------|
 | **Main board** | Heltec WiFi LoRa 32 V4 (ESP32-S3 + SX1262 LoRa + 0.96" OLED) |
 | **Display** | Built-in 0.96" OLED 128×64 (on Heltec V4 PCB) |
-| **Keyboard** | M5Stack CardKB (I²C, 58.2×27.6mm, 46-key QWERTY) |
-| **Battery** | MakerFocus 3.7 V LiPo 3000 mAh (~65×36×10 mm nominal) |
+| **Keyboard** | M5Stack CardKB v1.1 (I²C, 88×54×7 mm, 46-key QWERTY) |
+| **Battery** | MakerFocus 3.7 V LiPo 3000 mAh (~71×51×9 mm nominal) |
 | **Antenna** | SMA LoRa antenna (868/915 MHz) |
 | **Fasteners** | M2×8mm screws + M2 nuts |
 
 ## Dimensions
 
-| Part | Width | Length | Height |
-|------|-------|--------|--------|
-| Top Shell | 74mm | 165mm | 9mm |
-| Bottom Shell | 74mm | 165mm | 15mm |
-| Battery Cover | 46mm | 75mm | 4mm |
-| Antenna Mount | 22mm | 12mm | 10mm |
-| **Assembled (closed)** | **74mm** | **165mm** | **24mm** |
+| Part | Width (X) | Length (Y) | Height (Z) |
+|------|-----------|------------|------------|
+| Top Shell | 95 mm | 120 mm | 19 mm |
+| Keyboard Tray (Bottom Shell) | 95 mm | 120 mm | 8 mm |
+| Antenna Mount | 16 mm | 12 mm | 10 mm |
+| **Assembled (closed)** | **95 mm** | **120 mm** | **27 mm** |
+
+Slider travel: **65 mm** (exposes full 54 mm CardKB short axis + margin)
 
 ## Getting Started
 
@@ -102,8 +103,7 @@ The `models/stl/` directory contains ready-to-print STL files. Import them into 
 ```bash
 # Render individual parts from command line
 openscad -o top_shell.stl models/scad/top_shell.scad
-openscad -o bottom_shell.stl models/scad/bottom_shell.scad
-openscad -o battery_cover.stl models/scad/battery_cover.scad
+openscad -o keyboard_tray.stl models/scad/keyboard_tray.scad
 openscad -o antenna_mount.stl models/scad/antenna_mount.scad
 ```
 
@@ -122,38 +122,39 @@ python3 scripts/generate_stl.py --part top_shell  # Generate one part
 | Setting | Recommendation |
 |---------|---------------|
 | **Layer Height** | 0.2mm (0.12mm for OLED viewport frame) |
-| **Infill** | 20–25% (100% for battery cover snap tabs) |
+| **Infill** | 20–25% top shell, 30% keyboard tray |
 | **Material** | PETG or ASA recommended (PLA acceptable) |
-| **Supports** | Required for arc guide channels |
-| **Orientation** | Print shells face-down for best surface finish |
+| **Supports** | Not required — all overhangs ≤ 45°; rectangular groove walls need no support |
+| **Orientation** | Top shell: display face down; keyboard tray: top face (grooves) down |
 | **Walls** | 3 perimeters minimum |
 
 ## Assembly Instructions
 
 1. **Print all parts** using recommended settings above
-2. **Seat the CardKB** — press the M5Stack CardKB module into the pocket in the bottom shell keyboard well; the retention ledges click it in place
-3. **Mount the Heltec V4** — secure with M2×8mm screws through the 4 mounting posts in the bottom shell; align the OLED with the viewport window in the top shell
-4. **Wire the CardKB** — run the CardKB Grove/I²C cable through the side access slot and connect to the Heltec V4 (SDA → GPIO 21, SCL → GPIO 22)
-5. **Install the antenna mount** — attach to the top edge of the bottom shell with M2 screws, thread the SMA connector through
-6. **Insert the LiPo battery** — place the flat LiPo cell in the battery compartment and snap the battery cover shut
-7. **Assemble the slide** — align the top shell's guide pins with the bottom shell's curved arc channels and slide together from the keyboard end; the mechanism will snap into the closed position
-8. **Flash Meshtastic firmware** — connect via USB-C and use [flasher.meshtastic.org](https://flasher.meshtastic.org); select **Heltec WiFi LoRa 32 V4** as the target device
+2. **Press-fit magnets** — press 6× 10 mm × 4 mm neodymium disc magnets into their pockets (check polarity: opposing pairs must attract). Top shell has 4 pockets (2 for closed snap at X=+38 mm, 2 for open snap at X=−39 mm); keyboard tray has 2 pockets at X=+32 mm.
+3. **Seat the CardKB** — press the M5Stack CardKB module into the pocket in the keyboard tray; the retention ledges click it in place
+4. **Mount the Heltec V4** — secure with M2×8mm screws through the 4 mounting posts inside the top shell; align the OLED with the viewport window
+5. **Wire the CardKB** — run the CardKB I²C cable through the side access slot and connect to the Heltec V4 (SDA → GPIO 21, SCL → GPIO 22); use the wire routing groove alongside the rail
+6. **Install the antenna mount** — attach to the top edge of the top shell with M2 screws, thread the SMA connector through
+7. **Insert the LiPo battery** — place the flat LiPo cell in the battery compartment inside the top shell and snap the retention clips
+8. **Assemble the slide** — align the keyboard tray's rail grooves with the top shell's rectangular rails at the **+X (right) end** and slide the tray in; it will snap into the closed position via the magnet detents
+9. **Flash Meshtastic firmware** — connect via USB-C and use [flasher.meshtastic.org](https://flasher.meshtastic.org); select **Heltec WiFi LoRa 32 V4** as the target device
 
 ## Customization
 
 All dimensions are parametric. Edit `models/scad/parameters.scad` to adjust:
 
-- `phone_length`, `phone_width`, `phone_thickness` — overall size
-- `wall` — shell thickness (increase for durability, decrease for weight)
-- `clearance` — sliding fit tolerance (tune for your printer)
-- `keyboard_travel` — how far the keyboard slides out
-- `arc_radius` — radius of the curved arc path (larger = gentler tilt)
-- `tilt_angle` — maximum tilt angle when fully open (degrees)
-- `guide_pin_d`, `guide_pin_h` — size of guide pins on top shell
-- `guide_slot_width`, `guide_slot_depth` — arc channel dimensions
-- `detent_depth` — snap detent strength (open/closed positions)
+- `phone_length`, `phone_width` — overall body footprint
+- `wall_thickness` / `wall` — shell wall thickness (increase for durability)
+- `clearance` — general sliding-fit tolerance (tune for your printer)
+- `slider_travel` / `keyboard_travel` — how far the keyboard tray slides out (default 65 mm)
+- `rail_width`, `rail_height` — rectangular guide rail cross-section (3×3 mm default)
+- `rail_clearance` — per-side clearance between rail and tray groove (0.35 mm default)
+- `rail_length` — guide rail length along X (70 mm default, ≥70% of tray width)
+- `channel_standoff` — extra groove depth for passive typing tilt (2 mm → ~3° tilt)
+- `magnet_offset` — lateral offset between body and tray magnet pockets for snap-in detent (6 mm)
 - `corner_radius` — roundness of edges
-- `cardkb_length`, `cardkb_width`, `cardkb_thickness` — CardKB module pocket
+- `cardkb_w`, `cardkb_h`, `cardkb_thickness` — CardKB module pocket dimensions
 - PCB, battery, display viewport dimensions — match your specific hardware
 
 ## Contributing

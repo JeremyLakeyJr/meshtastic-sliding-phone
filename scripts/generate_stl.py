@@ -2,8 +2,15 @@
 """
 Meshtastic Sliding Phone - STL Generator
 =========================================
-Generates printable STL mesh files for all phone components using numpy-stl.
-Run this script to produce STL files without needing OpenSCAD installed.
+Generates **approximate** STL mesh files for all phone components using
+numpy-stl.  Run this script to produce STL files without needing OpenSCAD.
+
+IMPORTANT: This generator is additive-only — it builds meshes by combining
+boxes and cylinders but cannot perform boolean subtraction.  Features such as
+interior cavities, port cutouts, OLED viewport, screw holes, and rail grooves
+are NOT represented in the output.  For fully accurate, printable STLs use
+the OpenSCAD source files in models/scad/ instead.  The pre-generated STL
+files in models/stl/ are produced from OpenSCAD.
 
 DESIGN (2-piece)
   top_shell     – unified enclosure (display, PCB, battery, slider rails, ports)
@@ -491,13 +498,19 @@ def generate_bottom_shell():
 
 
 def generate_antenna_mount():
-    """SMA antenna mount / strain relief."""
+    """SMA antenna mount / strain relief (16 × 12 × 10 mm).
+
+    Simplified additive mesh: mount body + flange only.
+    The SMA through-hole, wrench-flat relief, screw holes, and cable channel
+    require boolean subtraction — use antenna_mount.scad for a printable part.
+    """
     parts = []
     mw, ml, mh = 16, 12, 10
+    # Mount body
     parts.append(_box_triangles(0, 0, 0, mw, ml, mh))
+    # Flange (extends past shell wall)
     fl_ext = 3
     parts.append(_box_triangles(0, -ml / 2 + 1.5, 0, mw + 2 * fl_ext, 3, mh))
-    parts.append(_cylinder_triangles(0, 0, mh / 2 - SMA_D / 2, SMA_D / 2, ml, 16))
 
     verts, faces = _combine_meshes(parts)
     return _make_stl(verts, faces)
@@ -518,7 +531,7 @@ GENERATORS = {
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate Meshtastic Sliding Phone STL files (2-piece dovetail design)")
+        description="Generate Meshtastic Sliding Phone STL files (2-piece rectangular-rail design)")
     parser.add_argument("--part", choices=list(GENERATORS.keys()),
                         help="Generate a single part (default: all canonical parts)")
     parser.add_argument("--output-dir", default=OUTPUT_DIR,
