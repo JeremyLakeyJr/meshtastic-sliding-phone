@@ -24,7 +24,7 @@
 //         side wall, providing the groove floor and inner face.
 //     (b) A clearance cut into the tray’s outer side wall (rail_clearance mm).
 //
-// Wire routing groove alongside Y = +rail_y
+// Wire routing groove alongside +Y guide block
 //   6 mm wide × 2 mm deep channel for the CardKB flex cable.
 //
 // Magnetic detents (neodymium disc magnets, 10 mm dia × 4 mm thick, N35)
@@ -103,8 +103,9 @@ module keyboard_tray() {
                     rounded_box(cardkb_thickness + 1, 10, wall_thickness + 0.4, 1);
 
             // ── Wire routing groove alongside +Y rail ───────────────────────────
+            // Just inside the +Y guide block: Y = groove_inner_y − wire_tunnel_width − 0.5 mm gap
             translate([-tray_w / 2,
-                       rail_y + rail_base_width / 2 + rail_clearance + 0.5,
+                       groove_inner_y - wire_tunnel_width - 0.5,
                        tray_z - wire_tunnel_height])
                 cube([tray_w, wire_tunnel_width, wire_tunnel_height + 0.1]);
 

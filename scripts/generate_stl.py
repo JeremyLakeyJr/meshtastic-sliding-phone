@@ -65,153 +65,88 @@ PHONE_LENGTH     = 120.0
 PHONE_WIDTH      =  95.0
 
 WALL_THICKNESS   =   2.2
-WALL             =   WALL_THICKNESS
 CLEARANCE        =   0.3
 CORNER_R         =   4.0
 
 # Component heights
-TOP_SHELL_Z  =  10.0   # display / PCB section
-BOT_SHELL_Z  =   9.0   # battery / ports section
-BODY_Z       =  TOP_SHELL_Z + BOT_SHELL_Z  # 19 mm – unified top shell
-TRAY_Z       =   8.0   # keyboard tray
-PHONE_THICKNESS = BODY_Z + TRAY_Z   # 27 mm
+TOP_SHELL_Z     =  10.0   # display / PCB section
+BOT_SHELL_Z     =   9.0   # battery / ports section
+BODY_Z          =  TOP_SHELL_Z + BOT_SHELL_Z  # 19 mm – unified top shell
+TRAY_Z          =   8.0   # keyboard tray
+PHONE_THICKNESS =  BODY_Z + TRAY_Z   # 27 mm
 
 # Display (Heltec V4 OLED 0.96″)
 DISPLAY_W        =  23.0
 DISPLAY_H        =  13.0
 DISPLAY_OFFSET_Y =  12.0
-DISPLAY_DEPTH    =   2.0
 
-# Heltec WiFi LoRa 32 V4 PCB (ESP32-S3 + SX1262; actual 51.7 × 25.4 mm)
-PCB_LENGTH       =  52.0
-PCB_WIDTH        =  26.0
+# Heltec WiFi LoRa 32 V4 PCB
+PCB_LENGTH  =  52.0
+PCB_WIDTH   =  26.0
 
-# Battery pocket (MakerFocus 3000 mAh 3.7 V LiPo, ~70×50×8 mm nominal)
-BATTERY_POCKET_X =  71.0   # pocket X dimension – per spec
-BATTERY_POCKET_Y =  51.0   # pocket Y dimension – per spec
-BATTERY_POCKET_Z =   9.0   # pocket depth – per spec
+# Battery pocket (MakerFocus 3000 mAh 3.7 V LiPo, ~71×51×9 mm)
+BATTERY_POCKET_X =  71.0
+BATTERY_POCKET_Y =  51.0
+BATTERY_POCKET_Z =   9.0
 
-# Legacy LiPo (kept for reference)
-LIPO_THICKNESS   =   6.0
-LIPO_WIDTH       =  42.0
-LIPO_LENGTH      =  52.0
-
-# CardKB keyboard module (M5Stack CardKB v1.1)
-# cardkb_w  = 88 mm (along phone Y-axis)
-# cardkb_h  = 54 mm (along sliding X-axis)
+# CardKB keyboard module (M5Stack CardKB v1.1, 88×54×7 mm)
 CARDKB_W         =  88.0   # long axis, along phone Y
 CARDKB_H         =  54.0   # short axis, along sliding X
 CARDKB_THICKNESS =   7.0
 
-KEYBOARD_CLEARANCE    = 0.5   # per-side clearance around keyboard
-KEYBOARD_POCKET_DEPTH = 8.0   # pocket depth (> cardkb_thickness)
-KEYBOARD_HEIGHT_CLEARANCE = 10.0  # min internal Z clearance
+KEYBOARD_CLEARANCE    = 0.5
+KEYBOARD_POCKET_DEPTH = 8.0
 
 # Slider travel (shortways, −X direction)
-# 65 mm travel exposes 65 mm of tray area (≥ 60 mm spec)  ✓
-SLIDER_TRAVEL    =  65.0
-KEYBOARD_TRAVEL  =  SLIDER_TRAVEL   # alias
+SLIDER_TRAVEL  =  65.0
 
-# --- Rectangular slider rail system (per spec) ---
-# Additive rails on interior side walls of the top shell.
-# One rail per interior long wall (Y = ±WALL_INNER_Y), protruding inward.
-RAIL_WIDTH       =  3.0   # rail protrusion from wall face (Y) – per spec
-RAIL_HEIGHT      =  3.0   # rail height above floor (Z) – per spec
-RAIL_CLEARANCE   =  0.35  # per-side clearance between rail and groove – per spec
-RAIL_LENGTH      = 70.0   # rail length along X – per spec (≥ 70 % of tray width)
+# Rectangular slider rail system
+RAIL_WIDTH     =  3.0   # rail protrusion from wall face (Y)
+RAIL_HEIGHT    =  3.0   # rail height (Z)
+RAIL_CLEARANCE =  0.35  # per-side clearance between rail and groove
+RAIL_LENGTH    = 70.0   # rail length along X (≥ 70 % of tray width)
 
 # Derived rail / groove positions
-WALL_INNER_Y     = PHONE_LENGTH / 2 - WALL_THICKNESS  # 57.8 mm – interior wall face
-RAIL_INNER_Y     = WALL_INNER_Y - RAIL_WIDTH           # 54.8 mm – rail inner edge
-RUNNER_X_START   = PHONE_WIDTH / 2 - RAIL_LENGTH       # −22.5 mm – +X insertion end
-
-# Derived groove dimensions (tray captures the top-shell rails)
-GROOVE_WIDTH     = RAIL_WIDTH  + 2 * RAIL_CLEARANCE    # 3.7 mm
-GROOVE_DEPTH     = RAIL_HEIGHT + RAIL_CLEARANCE         # 3.35 mm
-GROOVE_INNER_Y   = WALL_INNER_Y - RAIL_WIDTH - RAIL_CLEARANCE  # 54.45 mm
-GROOVE_OUTER_Y   = WALL_INNER_Y + RAIL_CLEARANCE               # 58.15 mm
-
-# Legacy parameters kept for utility functions / backward compat
-RAIL_BASE_WIDTH  =  4.0   # legacy dovetail runner cap width
-RAIL_TOP_WIDTH   =  1.2   # legacy dovetail runner base width
-RAIL_ANGLE       = 45.0   # legacy reference angle
-RAIL_SPACING     = 80.0   # legacy centre-to-centre Y spacing
-RAIL_Y           = RAIL_SPACING / 2   # legacy ±40.0 mm
-CHANNEL_STANDOFF =  2.0   # legacy groove standoff
-RAIL_CHANNEL_W     = RAIL_TOP_WIDTH  + 2 * RAIL_CLEARANCE   # 1.9 mm legacy
-RAIL_CHANNEL_INNER = RAIL_BASE_WIDTH + 2 * RAIL_CLEARANCE   # 4.7 mm legacy
-RAIL_CHANNEL_H     = RAIL_HEIGHT + CHANNEL_STANDOFF          # 5.0 mm legacy
-
-# Pop-up / detent
-RAIL_SLOPE_ANGLE    =  3.0
-MAXIMUM_LIFT_HEIGHT =  3.0
-STOP_BUMP_HEIGHT =  1.2
-DETENT_HEIGHT    =  0.3
+WALL_INNER_Y  = PHONE_LENGTH / 2 - WALL_THICKNESS         # 57.8 mm
+RAIL_INNER_Y  = WALL_INNER_Y - RAIL_WIDTH                  # 54.8 mm
+RUNNER_X_START = PHONE_WIDTH / 2 - RAIL_LENGTH             # −22.5 mm
+GROOVE_DEPTH  = RAIL_HEIGHT + RAIL_CLEARANCE               # 3.35 mm
+GROOVE_INNER_Y = WALL_INNER_Y - RAIL_WIDTH - RAIL_CLEARANCE  # 54.45 mm
 
 # Wire routing tunnel
-WIRE_TUNNEL_WIDTH  =  6.0   # per spec
-WIRE_TUNNEL_HEIGHT =  2.0   # per spec
+WIRE_TUNNEL_WIDTH  =  6.0
+WIRE_TUNNEL_HEIGHT =  2.0
 
-# --- End-stop blocks (inside rail grooves) – per spec ---
-STOP_BLOCK_HEIGHT = 2.0   # block height above groove floor
-STOP_CUTOUT       = 2.5   # runner -X tip cutout depth (enables assembly)
-STOP_BLOCK_DEPTH  = 2.0   # stop block X-dimension
-TAB_STOP_MARGIN   = 2.0   # travel margin before stop (mm before SLIDER_TRAVEL)
+# Ports
+USBC_W  = 11.0
+USBC_H  =  4.0
 
-# Stop block +X face position in body frame:
-# STOP_BLOCK_POS_X = -(SLIDER_TRAVEL - TAB_STOP_MARGIN - PHONE_WIDTH/2) = -15.5 mm
-STOP_BLOCK_POS_X = -(SLIDER_TRAVEL - TAB_STOP_MARGIN - PHONE_WIDTH / 2)
+# Standoffs (Heltec V4 PCB mounting)
+STANDOFF_HEIGHT   =  4.0
+STANDOFF_DIAMETER =  6.0
+SCREW_HOLE_D      =  3.0
 
-# Legacy tab stop (kept for backward compat)
-TAB_W_EXTRA     =  2.0
-TAB_DEPTH       =  3.0
-TAB_HEIGHT_EXT  =  1.5
+# Neodymium magnet detents (10 mm × 4 mm disc, N35)
+MAGNET_D        = 10.0   # physical magnet diameter
+MAGNET_DIAMETER = 10.3   # pocket bore
+MAGNET_DEPTH    =  3.6   # pocket depth (magnet 0.4 mm proud)
+MAGNET_LIP      =  0.6   # retention lip (entrance narrowed to 9.1 mm)
+MAGNET_Y        = 20.0
+DETENT_X_OFFSET = 32.0
+MAGNET_OFFSET   =  6.0
 
-# --- Ports (per spec) ---
-SMA_D    =  6.5
-USBC_W   = 11.0   # per spec (was 9.5 mm)
-USBC_H   =  4.0   # per spec (was 3.5 mm)
+# Structural ribs
+RIB_WIDTH  = 2.0
+RIB_HEIGHT = 6.0   # approximate rib height for STL representation
 
-# --- Standoffs / screw posts (per spec) ---
-STANDOFF_HEIGHT   =  4.0   # per spec (was 5.0 mm)
-STANDOFF_DIAMETER =  6.0   # per spec (matches parameters.scad standoff_diameter)
-SCREW_HOLE_D      =  3.0   # per spec (M3 clearance, matches parameters.scad screw_hole_d)
-SCREW_POST_D      =  STANDOFF_DIAMETER
-SCREW_POST_H      =  STANDOFF_HEIGHT   # alias
+# PCB mounting platform
+PLATFORM_THICKNESS = 2.0
 
-# --- Antenna keepout ---
-ANTENNA_KEEPOUT_RADIUS = 12.0  # per spec
+# Battery retention clips (small snap tabs over pocket edges)
+BATTERY_CLIP_HEIGHT = 1.5
 
-# --- Neodymium magnet detents (10 mm × 4 mm disc, N35) – per spec ---
-MAGNET_D         = 10.0   # physical magnet diameter
-MAGNET_H         =  4.0   # physical magnet thickness
-MAGNET_DIAMETER  = 10.3   # pocket bore – per spec
-MAGNET_DEPTH     =  3.6   # pocket depth – per spec (magnet 0.4 mm proud)
-MAGNET_LIP       =  0.6   # retention lip – per spec (entrance 9.1 mm)
-MAGNET_POCKET_D  = MAGNET_DIAMETER   # 10.3 mm bore
-MAGNET_POCKET_H  = MAGNET_DEPTH      # 3.6 mm depth
-MAGNET_Y         = 20.0
-DETENT_X_OFFSET  = 32.0
-
-# Offset detent configuration (per spec):
-#   Body closed pocket at body-X = DETENT_X_OFFSET + MAGNET_OFFSET = +38 mm
-#   Body open   pocket at body-X = DETENT_X_OFFSET - SLIDER_TRAVEL
-#                                  - MAGNET_OFFSET = -39 mm
-#   Tray pockets at tray-local X = DETENT_X_OFFSET = +32 mm (unchanged)
-MAGNET_OFFSET    =  6.0   # per spec
-
-# --- Structural ribs (per spec) ---
-RIB_WIDTH  = 2.0   # per spec
-RIB_HEIGHT = 6.0   # per spec
-
-# --- PCB mounting platform (per spec) ---
-PLATFORM_THICKNESS = 2.0   # structural floor reinforcement under Heltec board
-
-# --- Battery retention clips (per spec) ---
-BATTERY_CLIP_HEIGHT = 1.5  # clip tab height at battery pocket edges
-
-# --- Lightening pockets (per spec) ---
-POCKET_DEPTH = 1.5   # shallow recess depth on body bottom face
+# Lightening pockets (shallow recesses on body bottom face)
+POCKET_DEPTH = 1.5
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "..", "models", "stl")
@@ -290,11 +225,9 @@ def generate_top_shell():
     95 × 120 × 19 mm.  Rectangular slider rails (RAIL_WIDTH=3mm, RAIL_HEIGHT=3mm)
     protrude BELOW the bottom face (Z = -RAIL_HEIGHT … 0), engaging tray grooves.
     Interior cavity height = BODY_Z - 2*WALL_THICKNESS preserves both floor and
-    display-face top plate.  Battery pocket 71×51×9 mm.
+    display-face top plate.  Battery pocket 71×51×9 mm with retention clips.
     Magnet detents at X=+38/−39 mm (offset by MAGNET_OFFSET=6mm).
-    USB-C 11×4 mm.  Standoffs 4 mm tall, 6 mm dia (M3 blind holes).
-    PCB platform 2 mm thick.  Battery clips 1.5 mm.  Lightening pockets 1.5 mm.
-    Wire routing groove 6×2 mm alongside +Y wire path.
+    USB-C 11×4 mm.  Standoffs 4 mm tall, 6 mm dia.  PCB platform 2 mm.
     """
     parts = []
     w, l, d = PHONE_WIDTH, PHONE_LENGTH, BODY_Z
@@ -356,9 +289,9 @@ def generate_top_shell():
     for side in [-1, 1]:
         my = side * MAGNET_Y
         parts.append(_cylinder_triangles(closed_x, my, 0,
-                                         MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 16))
+                                         MAGNET_DIAMETER / 2, MAGNET_DEPTH, 16))
         parts.append(_cylinder_triangles(open_x, my, 0,
-                                         MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 16))
+                                         MAGNET_DIAMETER / 2, MAGNET_DEPTH, 16))
 
     # Lightening pockets on body bottom face (POCKET_DEPTH=1.5 mm between rails)
     for px in [10, -25]:
@@ -382,7 +315,7 @@ def generate_top_shell():
                                              STANDOFF_DIAMETER / 2,
                                              STANDOFF_HEIGHT, 16))
 
-    # Reinforcement ribs (rib_width=2mm, rib_height=6mm per spec)
+    # Reinforcement ribs
     rib_t  = RIB_WIDTH
     rib_h  = RIB_HEIGHT
     rib_iw = w - 2 * WALL_THICKNESS
@@ -393,11 +326,6 @@ def generate_top_shell():
     for frac in [1/3, 2/3]:
         ry = -l/2 + WALL_THICKNESS + frac * rib_il
         parts.append(_box_triangles(0, ry, WALL_THICKNESS, rib_iw, rib_t, rib_h))
-
-    # Wire routing groove alongside +Y rail (6×2 mm)
-    wire_cy = RAIL_Y + RAIL_BASE_WIDTH / 2 + RAIL_CLEARANCE + 0.5 + WIRE_TUNNEL_WIDTH / 2
-    parts.append(_box_triangles(0, wire_cy, 0,
-                                w, WIRE_TUNNEL_WIDTH, WIRE_TUNNEL_HEIGHT))
 
     verts, faces = _combine_meshes(parts)
     return _make_stl(verts, faces)
@@ -476,15 +404,15 @@ def generate_keyboard_tray():
                                 KEYBOARD_POCKET_DEPTH))
 
     # Magnet pockets on top face (tray-local X = +DETENT_X_OFFSET = +32 mm)
-    # These are offset from body pockets by MAGNET_OFFSET = 6 mm.
     for side in [-1, 1]:
         my = side * MAGNET_Y
         parts.append(_cylinder_triangles(DETENT_X_OFFSET, my,
-                                         d - MAGNET_POCKET_H,
-                                         MAGNET_POCKET_D / 2, MAGNET_POCKET_H, 16))
+                                         d - MAGNET_DEPTH,
+                                         MAGNET_DIAMETER / 2, MAGNET_DEPTH, 16))
 
-    # Wire routing groove alongside +Y wire path (6×2 mm)
-    wire_cy = RAIL_Y + RAIL_BASE_WIDTH / 2 + RAIL_CLEARANCE + 0.5 + WIRE_TUNNEL_WIDTH / 2
+    # Wire routing groove alongside +Y guide block (6×2 mm)
+    # Y_start = GROOVE_INNER_Y - WIRE_TUNNEL_WIDTH - 0.5 mm gap from guide block
+    wire_cy = GROOVE_INNER_Y - WIRE_TUNNEL_WIDTH / 2 - 0.5
     parts.append(_box_triangles(0, wire_cy, d - WIRE_TUNNEL_HEIGHT,
                                 w, WIRE_TUNNEL_WIDTH, WIRE_TUNNEL_HEIGHT))
 
